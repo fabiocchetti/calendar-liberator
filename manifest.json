@@ -1,0 +1,41 @@
+{
+  "manifest_version": 3,
+  "name": "CalendarLiberator",
+  "version": "1.0.2",
+  "description": "Export your Outlook calendar to ICS format. Works with all Outlook/Office 365 domains. One-click export with timezone selection and event filtering.",
+  "permissions": ["activeTab"],
+  "host_permissions": [
+    "*://*.outlook.office.com/*",
+    "*://*.outlook.office365.com/*",
+    "*://*.office.com/*",
+    "*://*.outlook.com/*",
+    "*://*.live.com/*",
+    "*://*.outlook.office.com.mcas.ms/*",
+    "*://*.outlook.cloud.microsoft.mcas.ms/*",
+    "*://*.outlook-sdf.office.com/*",
+    "*://*.outlook-sdf.office365.com/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "*://*.outlook.office.com/*",
+        "*://*.outlook.office365.com/*",
+        "*://*.office.com/*",
+        "*://*.outlook.com/*",
+        "*://*.live.com/*",
+        "*://*.outlook.office.com.mcas.ms/*",
+        "*://*.outlook.cloud.microsoft.mcas.ms/*",
+        "*://*.outlook-sdf.office.com/*",
+        "*://*.outlook-sdf.office365.com/*"
+      ],
+      "js": ["ics-generator.js", "content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "action": {
+    "default_title": "CalendarLiberator - Export Outlook Calendar",
+    "default_popup": "popup.html"
+  },
+  "author": "Fabio Biocchetti",
+  "homepage_url": "https://github.com/fabiocchetti/calendar-liberator"
+}
