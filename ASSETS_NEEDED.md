@@ -1,37 +1,10 @@
 # Assets Needed for Publishing
 
-## ⚠️ CRITICAL: Missing Assets
+## ✅ DONE: Extension Icons
 
-### 1. Extension Icons (REQUIRED)
-You **must** create icon files before publishing. All stores require these.
+Icons have been generated (16x16, 32x32, 48x48, 128x128 in `icons/`, plus `assets/logo-512.png` for store listings) and are referenced in `manifest.json`. See `BRAND.md` for the design system and `scripts/generate_icons.py` to regenerate them.
 
-#### Required Sizes:
-- **16x16** — Browser toolbar (manifest: `"16": "icons/icon-16.png"`)
-- **32x32** — Retina toolbar (manifest: `"32": "icons/icon-32.png"`)
-- **48x48** — Extension management page (manifest: `"48": "icons/icon-48.png"`)
-- **128x128** — Chrome Web Store listing (manifest: `"128": "icons/icon-128.png"`)
-
-#### Design Recommendations:
-- Use calendar emoji 📅 or a stylized calendar icon
-- Simple, recognizable design that works at 16x16
-- Purple gradient theme matching popup (#667eea → #764ba2)
-- Transparent background (PNG)
-- High contrast for visibility
-
-#### How to Add:
-1. Create `icons/` folder in project root
-2. Add all 4 icon files
-3. Update `manifest.json`:
-   ```json
-   "icons": {
-     "16": "icons/icon-16.png",
-     "32": "icons/icon-32.png",
-     "48": "icons/icon-48.png",
-     "128": "icons/icon-128.png"
-   }
-   ```
-
-### 2. Store Listing Screenshots (REQUIRED)
+### 1. Store Listing Screenshots (REQUIRED — still needed)
 
 #### Chrome Web Store:
 - **1-5 screenshots** (1280x800 or 640x400)
@@ -52,7 +25,7 @@ You **must** create icon files before publishing. All stores require these.
 3. **"Export complete"** — Show success message and downloaded file
 4. **"Import anywhere"** — Show ICS file being imported to iOS/Google Calendar
 
-### 3. Store Promotional Images (OPTIONAL but Recommended)
+### 2. Store Promotional Images (OPTIONAL but Recommended)
 
 #### Chrome Web Store:
 - **Small tile:** 440x280 (appears in search results)
@@ -83,7 +56,7 @@ CalendarLiberator exports your Outlook calendar to standard ICS format in second
 • One-click export with simple popup interface
 • Auto-detects your timezone (customizable)
 • Filter declined and out-of-office events
-• Exports 4 weeks of events (past + current + next 2 weeks)
+• Exports a 28-day window (7 days back + 21 days forward)
 • Works with all Outlook and Office 365 domains
 • 100% private — all processing happens locally
 • No data transmission or cloud storage
@@ -128,16 +101,16 @@ outlook, calendar, export, ics, office 365, calendar backup, calendar sync, prod
 
 ## 🎨 Design Assets Checklist
 
-- [ ] Icon 16x16
-- [ ] Icon 32x32
-- [ ] Icon 48x48
-- [ ] Icon 128x128
+- [x] Icon 16x16
+- [x] Icon 32x32
+- [x] Icon 48x48
+- [x] Icon 128x128
 - [ ] Screenshot 1: Popup interface
 - [ ] Screenshot 2: Export in progress
 - [ ] Screenshot 3: Success/Import
 - [ ] (Optional) Promotional tile 440x280
 - [ ] (Optional) Marquee 1400x560
-- [ ] (Optional) Edge store icon 300x300
+- [ ] (Optional) Edge store icon 300x300 (resize `assets/logo-512.png`)
 
 ---
 
@@ -151,16 +124,18 @@ outlook, calendar, export, ics, office 365, calendar backup, calendar sync, prod
 - [x] Code follows store policies
 
 ### Manifest
-- [x] Version number set (1.0.0)
+- [x] Version number set (see `manifest.json`)
 - [x] Description under character limit
-- [ ] Icons defined (NEED TO CREATE)
+- [x] Icons defined
 - [x] Permissions minimal and justified
 - [x] Host permissions cover all Outlook domains
+- [x] Firefox `browser_specific_settings.gecko` handled by `build.sh`
 
 ### Documentation
 - [x] README.md complete and accurate
 - [x] LICENSE file present (MIT)
 - [x] BUILD.md with packaging instructions
+- [x] PRIVACY.md (use its GitHub URL as the privacy policy link in store listings)
 
 ### Testing
 - [ ] Tested on multiple Outlook accounts
@@ -175,40 +150,19 @@ outlook, calendar, export, ics, office 365, calendar backup, calendar sync, prod
 ### Store Requirements
 - [ ] Developer account created
 - [ ] Payment ($5 for Chrome, free for Firefox/Edge)
-- [ ] Privacy policy URL (if collecting any data — NOT NEEDED for this extension)
+- [x] Privacy policy (see `PRIVACY.md` — publish the repo and link to it)
 - [ ] Screenshots prepared
-- [ ] Icons created
-
----
-
-## 🔧 How to Create Icons Quickly
-
-### Option 1: Use Figma/Sketch/Illustrator
-1. Design at 128x128 with transparent background
-2. Export at 128x128, 48x48, 32x32, 16x16
-
-### Option 2: Use Online Tools
-- [RealFaviconGenerator](https://realfavicongenerator.net/)
-- [Icon Generator](https://cthedot.de/icongen/)
-- [Photopea](https://www.photopea.com/) (free Photoshop alternative)
-
-### Option 3: Simple Text Icon (Quick Placeholder)
-For testing purposes, you can use a simple colored square with "📅" emoji:
-```html
-<!-- Create in HTML canvas, screenshot, resize -->
-<div style="width:128px; height:128px; background:linear-gradient(135deg, #667eea 0%, #764ba2 100%); display:flex; align-items:center; justify-content:center; font-size:64px;">📅</div>
-```
+- [x] Icons created
 
 ---
 
 ## 📤 Submission Order Recommendation
 
-1. **Create icons first** — This is blocking all stores
-2. **Test thoroughly** — Load unpacked and test all features
-3. **Take screenshots** — Use extension in real Outlook calendar
-4. **Submit to Firefox** — Fastest review, good for initial feedback
-5. **Submit to Edge** — Usually fast, similar to Chrome
-6. **Submit to Chrome** — Can take longest, most popular store
+1. **Test thoroughly** — Load unpacked and test all features on a real Outlook calendar
+2. **Take screenshots** — Use the extension in a real Outlook calendar
+3. **Submit to Firefox** — Fastest review, good for initial feedback
+4. **Submit to Edge** — Usually fast, similar to Chrome
+5. **Submit to Chrome** — Can take longest, most popular store
 
 ---
 

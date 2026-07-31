@@ -6,9 +6,8 @@
 
 **This extension uses UI scraping instead of official APIs.** This design choice provides several benefits:
 - **Lightweight** — No complex API authentication or server-side processing
-- **Minimal permissions** — Only requires `activeTab` permission
-- **Undetectable** — No API calls means no audit trails (as long as browser monitoring isn't in place)
-- **Privacy-first** — All processing happens locally in your browser
+- **Privacy-first** — All processing happens locally in your browser; no data ever leaves your device
+- **Minimal permissions** — Only `activeTab` plus host access limited to Outlook/Office 365 domains
 
 **However, this approach has limitations:**
 - **UI-dependent** — If Microsoft updates Outlook's interface, scraping may break until updated
@@ -98,11 +97,11 @@ calendar-liberator/
 - Detects recurring events and exceptions
 - Handles both timed events and all-day events
 
-#### **Professional ICS Generation**
-- Full timezone support with VTIMEZONE definitions
-- Proper datetime formatting (ISO 8601)
-- Recurrence rule support
-- Standard-compliant ICS format
+#### **Standards-Compliant ICS Generation**
+- Event times converted to UTC with per-date DST handling (no one-hour shifts across DST changes)
+- All-day events exported as floating dates
+- Stable UIDs based on Outlook calendar item IDs for clean re-imports
+- RFC 5545-compliant output
 
 #### **Error Handling & Recovery**
 - Validates Outlook page before starting
@@ -134,15 +133,15 @@ Each package includes a browser-specific README with appropriate installation in
 - **Modular ICS Generator** for calendar format conversion
 
 ### Extension Permissions
-- `activeTab`: Access to current Outlook tab
-- Host permissions for Outlook domains (no background scripts or broad permissions)
+- `activeTab`: Interact with the Outlook tab only after you click the extension icon
+- Host permissions limited to Outlook/Office 365 domains: required for the content script that reads the calendar view (no background scripts, no other sites)
 
 ## Privacy & Security
 
 - **Zero data transmission** - everything processes locally
 - **No cloud storage** - files generated in your browser
 - **No credentials access** - works with what's already visible
-- **Minimal permissions** - only accesses active Outlook tabs
+- **No data retention** - nothing is stored after the export completes
 
 ## Troubleshooting
 
@@ -182,6 +181,20 @@ Found a bug or have an improvement? Feel free to:
 3. Share feedback on compatibility with different Outlook configurations
 
 ## Changelog
+
+### Version 1.1.0
+
+**Improved:**
+- Event times now converted to UTC with correct per-date DST handling (fixes one-hour shifts across daylight-saving changes)
+- Corrected timezone mapping (UTC+0 = London, UTC+1 = Rome/Berlin, UTC+2 = Helsinki/Athens)
+- New flat, minimal popup design with dark mode support
+- Extension icons included (16/32/48/128)
+- Firefox package now includes the required `browser_specific_settings.gecko` ID
+- Semi-transparent overlay blocks accidental page interactions during export (auto-removed on completion, failure, or after 60 seconds)
+
+**Removed:**
+- Dead email-detection code paths (cookie/iframe scanning)
+- Diagnostic logging of personal data
 
 ### Version 1.0.0 (Initial Release)
 

@@ -78,38 +78,44 @@ FILES=(
     "content.js"
     "ics-generator.js"
     "LICENSE"
+    "icons"
 )
 
-# Optional: add icons if they exist
-if [ -d "icons" ]; then
-    FILES+=("icons")
-fi
-
-echo "Copying files..."
-for file in "${FILES[@]}"; do
-    if [ -e "$file" ]; then
-        if [ -d "$file" ]; then
-            cp -r "$file" "$BUILD_DIR/"
+copy_files() {
+    for file in "${FILES[@]}"; do
+        if [ -e "$file" ]; then
+            if [ -d "$file" ]; then
+                cp -r "$file" "$BUILD_DIR/"
+            else
+                cp "$file" "$BUILD_DIR/"
+            fi
         else
-            cp "$file" "$BUILD_DIR/"
+            echo "  ERROR: $file not found"
+            exit 1
         fi
-        echo "  - $file"
-    else
-        echo "  WARNING: $file not found, skipping"
-    fi
-done
+    done
+}
 
-# Chrome/Edge package (same format)
+# Adds the Firefox-specific gecko settings to the manifest inside BUILD_DIR
+# (Firefox requires an explicit add-on ID for Manifest V3 extensions)
+add_firefox_settings() {
+    node -e "
+        const fs = require('fs');
+        const path = '$BUILD_DIR/manifest.json';
+        const manifest = JSON.parse(fs.readFileSync(path, 'utf8'));
+        manifest.browser_specific_settings = {
+            gecko: {
+                id: 'calendar-liberator@fabiocchetti.dev',
+                strict_min_version: '109.0'
+            }
+        };
+        fs.writeFileSync(path, JSON.stringify(manifest, null, 2) + '\n');
+    "
+}
+
+# Chrome package
 echo "Creating Chrome package..."
-for file in "${FILES[@]}"; do
-    if [ -e "$file" ]; then
-        if [ -d "$file" ]; then
-            cp -r "$file" "$BUILD_DIR/"
-        else
-            cp "$file" "$BUILD_DIR/"
-        fi
-    fi
-done
+copy_files
 generate_readme "chrome" "Chrome Web Store" "$CHROME_INSTALL" "$BUILD_DIR/README.md"
 cd "$BUILD_DIR"
 zip -r "../$DIST_DIR/calendar-liberator-chrome-$VERSION.zip" . -x "*.DS_Store"
@@ -119,16 +125,7 @@ rm -rf "$BUILD_DIR"/*
 
 # Edge package
 echo "Creating Edge package..."
-mkdir -p "$BUILD_DIR"
-for file in "${FILES[@]}"; do
-    if [ -e "$file" ]; then
-        if [ -d "$file" ]; then
-            cp -r "$file" "$BUILD_DIR/"
-        else
-            cp "$file" "$BUILD_DIR/"
-        fi
-    fi
-done
+copy_files
 generate_readme "edge" "Microsoft Edge Add-ons" "$EDGE_INSTALL" "$BUILD_DIR/README.md"
 cd "$BUILD_DIR"
 zip -r "../$DIST_DIR/calendar-liberator-edge-$VERSION.zip" . -x "*.DS_Store"
@@ -138,16 +135,8 @@ rm -rf "$BUILD_DIR"/*
 
 # Firefox package
 echo "Creating Firefox package..."
-mkdir -p "$BUILD_DIR"
-for file in "${FILES[@]}"; do
-    if [ -e "$file" ]; then
-        if [ -d "$file" ]; then
-            cp -r "$file" "$BUILD_DIR/"
-        else
-            cp "$file" "$BUILD_DIR/"
-        fi
-    fi
-done
+copy_files
+add_firefox_settings
 generate_readme "firefox" "Firefox Add-ons" "$FIREFOX_INSTALL" "$BUILD_DIR/README.md"
 cd "$BUILD_DIR"
 zip -r "../$DIST_DIR/calendar-liberator-firefox-$VERSION.zip" . -x "*.DS_Store"
@@ -165,9 +154,8 @@ ls -lh "$DIST_DIR"
 echo ""
 echo "Next steps:"
 echo "  1. Test the extension by loading the unpacked folder"
-echo "  2. Create icons (16x16, 32x32, 48x48, 128x128) and add to icons/ folder"
-echo "  3. Take screenshots for store listings"
-echo "  4. Submit to:"
+echo "  2. Take screenshots for store listings"
+echo "  3. Submit to:"
 echo "     - Chrome Web Store: https://chrome.google.com/webstore/devconsole"
 echo "     - Firefox Add-ons: https://addons.mozilla.org/developers/"
 echo "     - Edge Add-ons: https://partner.microsoft.com/dashboard/microsoftedge"

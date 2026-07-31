@@ -69,3 +69,6 @@ temp/
 # Fixture / test HTML files with sensitive data
 *fixture*.html
 june2026fixture.html
+
+# Python virtualenv (icon generation)
+.venv/

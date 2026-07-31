@@ -10,9 +10,8 @@ A browser extension that liberates your work calendar by scraping visible events
 
 **This extension uses UI scraping instead of official APIs.** This design choice provides several benefits:
 - **Lightweight** — No complex API authentication or server-side processing
-- **Minimal permissions** — Only requires `activeTab` permission
-- **Undetectable** — No API calls means no audit trails (as long as browser monitoring isn't in place)
-- **Privacy-first** — All processing happens locally in your browser
+- **Privacy-first** — All processing happens locally in your browser; no data ever leaves your device
+- **Minimal permissions** — Only `activeTab` plus host access limited to Outlook/Office 365 domains
 
 **However, this approach has limitations:**
 - **UI-dependent** — If Microsoft updates Outlook's interface, scraping may break until updated
@@ -31,6 +30,7 @@ A browser extension that liberates your work calendar by scraping visible events
 - **User-Controlled Export** — Choose timezone and filter declined/out-of-office events
 - **Complete Event Data** — Captures titles, times, dates, organizers, locations, recurring patterns, meeting types
 - **Stable UIDs** — Uses Outlook's calendar item IDs when available for reliable re-imports and updates
+- **Interaction Lock** — A semi-transparent overlay blocks accidental clicks on the page while the export runs (auto-removed on completion, failure, or after 60 seconds)
 - **Privacy-First** — All processing happens locally in your browser; no data transmission
 - **One-Click Export** — Simple popup interface with real-time progress tracking
 
@@ -108,7 +108,7 @@ Each package includes a browser-specific README with tailored installation instr
 ## Requirements
 
 - **Language:** Outlook interface must be set to English
-- **Browser:** Any Chromium-based browser (Chrome, Edge, Brave, Opera)
+- **Browser:** Chrome, Edge, Firefox, or any Chromium-based browser (Brave, Opera)
 - **Permissions:** Extension only requests `activeTab` and limited host permissions for Outlook domains
 
 ---
@@ -129,10 +129,10 @@ Each package includes a browser-specific README with tailored installation instr
 - Filters: declined and out-of-office events excluded by default (user-configurable)
 
 ### Timezone Handling
-- User selects the displayed timezone in Outlook
-- Events are exported with TZID tags referencing that timezone
-- ICS file includes proper VTIMEZONE definitions
-- No time conversion occurs—times exported as displayed
+- You select the UTC offset matching the timezone displayed in Outlook
+- Each event time is converted to UTC using the browser's timezone database, applying the correct DST rule for each event's own date
+- Events import at the right local time in any calendar app — no manual conversion needed
+- All-day events are exported as floating dates (no timezone shift)
 
 ---
 
@@ -140,9 +140,20 @@ Each package includes a browser-specific README with tailored installation instr
 
 - **English Only:** Currently requires Outlook interface to be in English
 - **28-Day Window:** Exports limited to exactly 28 days (7 days back + 21 forward, not entire calendar history)
+- **Whole-Hour Timezones:** Only whole-hour UTC offsets are supported; half-hour timezones (e.g. UTC+5:30, UTC+9:30) will export times shifted by 30 minutes
+- **Manual Re-Import:** The exported ICS is a static snapshot — subscribed devices do not auto-update (see Roadmap)
 - **Read-Only:** Cannot modify Outlook calendar, only read/export
 - **No Authentication:** Relies on user's existing Outlook session
 - **Recurring Events:** Exports individual instances, not recurrence rules (prevents import duplicates)
+
+---
+
+## Roadmap
+
+Planned ideas, roughly in priority order. Contributions and feedback welcome.
+
+- **Hosted, auto-updating exports** — Today the ICS is a static snapshot you re-import by hand every run. The goal is an optional one-click upload to user-owned hosting (e.g. GitHub Pages, S3/R2, WebDAV) so subscribed devices (iOS Calendar, Google Calendar) refresh automatically. This must stay privacy-first: strictly opt-in, uploads only to storage the user owns and configures, never to a third-party service operated by the extension.
+- **Support for other calendar web apps** — Google Calendar, Fastmail, Proton Calendar, etc. Nice-to-have, low priority; the scraping engine would need per-site adapters.
 
 ---
 
@@ -151,8 +162,9 @@ Each package includes a browser-specific README with tailored installation instr
 - **100% Local Processing:** All scraping and ICS generation happens in your browser
 - **No Data Transmission:** Extension never sends data to external servers
 - **No Storage:** Doesn't store credentials, calendar data, or any personal information
-- **Minimal Permissions:** Only requests access to Outlook domains when active tab is open
+- **Minimal Permissions:** `activeTab` plus host access limited to Outlook/Office 365 domains — nothing else
 - **Open Source:** Full source code available for audit
+- **Privacy Policy:** See [PRIVACY.md](PRIVACY.md)
 
 ---
 
@@ -210,13 +222,19 @@ calendar-liberator/
 ├── popup.js               # Popup logic
 ├── content.js             # Calendar scraping logic
 ├── ics-generator.js       # ICS file generation
+├── icons/                 # Extension icons (generated)
+├── scripts/               # Icon generation script
+├── assets/                # Store / documentation artwork
 ├── LICENSE                # MIT License
+├── PRIVACY.md             # Privacy policy
+├── BRAND.md               # Brand identity (palette, logo, typography)
+├── BUILD.md               # Build & publishing guide
 ├── .gitignore             # Git exclusions
 └── README.md              # This file
 ```
 
 ### Build & Package
-See build scripts for creating distribution packages for Chrome Web Store, Firefox Add-ons, and Edge Add-ons.
+See [BUILD.md](BUILD.md) for creating distribution packages for Chrome Web Store, Firefox Add-ons, and Edge Add-ons.
 
 ---
 

@@ -55,9 +55,12 @@ class CalendarLiberator {
                 throw new Error('This extension only works on Outlook calendar pages');
             }
 
+            // Block user interactions with the page while scraping is in progress
+            this.showExportOverlay();
+
             // Detect user email BEFORE any navigation (profile dropdown is available now)
             this.userEmail = await this.detectUserEmail();
-            console.log('[CalendarLiberator] Detected user email:', this.userEmail || 'not found');
+            console.log('[CalendarLiberator] User email detection:', this.userEmail ? 'found' : 'not found');
             
             this.sendProgress('Saving current view...', 5);
             await this.saveCurrentView();
@@ -174,7 +177,56 @@ class CalendarLiberator {
                 success: false, 
                 error: error.message || 'Export failed for unknown reason'
             };
+        } finally {
+            this.hideExportOverlay();
         }
+    }
+
+    // Show a semi-transparent overlay that blocks clicks and other page
+    // interactions while the export is running. Synthetic clicks issued by
+    // this content script (view switching, week navigation) are unaffected.
+    // A 60-second safety timeout removes the overlay even if the export hangs.
+    showExportOverlay() {
+        this.hideExportOverlay();
+
+        const overlay = document.createElement('div');
+        overlay.id = 'calendar-liberator-overlay';
+        overlay.style.cssText = [
+            'position:fixed',
+            'inset:0',
+            'z-index:2147483647',
+            'background:rgba(15, 14, 23, 0.35)',
+            'cursor:wait'
+        ].join(';');
+
+        const note = document.createElement('div');
+        note.textContent = 'CalendarLiberator is exporting your calendar…';
+        note.style.cssText = [
+            'position:absolute',
+            'top:16px',
+            'right:16px',
+            'background:#1C1B29',
+            'color:#FFFFFF',
+            'padding:8px 14px',
+            'border-radius:6px',
+            'font:13px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+        ].join(';');
+        overlay.appendChild(note);
+
+        document.body.appendChild(overlay);
+
+        this.overlayTimeout = setTimeout(() => {
+            console.warn('[CalendarLiberator] Export overlay auto-removed after 60s timeout');
+            this.hideExportOverlay();
+        }, 60000);
+    }
+
+    hideExportOverlay() {
+        if (this.overlayTimeout) {
+            clearTimeout(this.overlayTimeout);
+            this.overlayTimeout = null;
+        }
+        document.getElementById('calendar-liberator-overlay')?.remove();
     }
 
     validateOutlookPage() {
@@ -787,8 +839,6 @@ class CalendarLiberator {
         }
         
         // userEmail was detected early in exportCalendar() before any navigation
-        console.log('[CalendarLiberator] User email for calendar name:', this.userEmail || 'not found - using default');
-        
         const icsGenerator = new ICSGenerator(this.timezone, this.userEmail, this.calendarName || null);
         return icsGenerator.generate(this.allEvents);
     }
@@ -890,7 +940,7 @@ class CalendarLiberator {
                 try { document.body.click(); } catch (e) { /* ignore */ }
 
                 if (email) {
-                    console.log('[CalendarLiberator] Email found via profile dropdown click:', email);
+                    console.log('[CalendarLiberator] Email found via profile dropdown');
                     return email;
                 }
             }
@@ -900,166 +950,6 @@ class CalendarLiberator {
 
         console.warn('[CalendarLiberator] Could not detect user email');
         return null;
-    }
-
-    getUserEmail() {
-        // Kept for backwards compatibility — returns the pre-detected value
-        return this.userEmail;
-    }
-
-    _getUserEmailSync() {
-        const emailPattern = /([a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,})/;
-        const extractEmail = (text) => {
-            if (!text) return null;
-            const match = String(text).match(emailPattern);
-            return match ? match[1].toLowerCase() : null;
-        };
-
-        // Strategy 1: page title — new Outlook titles are like
-        // "Calendar - user@company.com - Outlook" or "Inbox - user@company.com - Outlook"
-        const titleEmail = extractEmail(document.title);
-        if (titleEmail) {
-            console.log('[CalendarLiberator] Found email in page title:', titleEmail);
-            return titleEmail;
-        }
-
-        // Strategy 2: well-known OWA / new-Outlook JS globals
-        try {
-            const candidates = [
-                window?._owaSeed?.userEmailAddress,
-                window?._owaSeed?.sessionSettings?.UserEmailAddress,
-                window?.bootConfig?.userSettings?.UserEmailAddress,
-                window?.OWASettings?.UserEmailAddress,
-                window?.msOcaConfigs?.UserEmailAddress,
-                window?.__userData?.email,
-            ];
-            for (const val of candidates) {
-                const email = extractEmail(val);
-                if (email) {
-                    console.log('[CalendarLiberator] Found email in JS global');
-                    return email;
-                }
-            }
-        } catch (e) { /* ignore */ }
-
-        // Strategy 3: inline <script> tags that embed JSON config (OWA pattern)
-        const inlineScripts = document.querySelectorAll('script:not([src])');
-        for (const script of inlineScripts) {
-            const content = script.textContent || '';
-            // Only bother with scripts that mention email-like keys
-            if (!content.includes('@') || !/(email|upn|smtp|account)/i.test(content)) continue;
-            const email = extractEmail(content);
-            if (email) {
-                console.log('[CalendarLiberator] Found email in inline script');
-                return email;
-            }
-        }
-
-        // Strategy 4: aria-label / title attributes on profile / account buttons
-        const attrSelectors = [
-            '[aria-label*="@"]',
-            '[title*="@"]',
-            '[data-objectid*="@"]',
-            '[data-email*="@"]',
-        ];
-        for (const sel of attrSelectors) {
-            try {
-                for (const el of document.querySelectorAll(sel)) {
-                    const email = extractEmail(el.getAttribute('aria-label')) ||
-                                  extractEmail(el.getAttribute('title')) ||
-                                  extractEmail(el.getAttribute('data-objectid')) ||
-                                  extractEmail(el.getAttribute('data-email'));
-                    if (email) {
-                        console.log('[CalendarLiberator] Found email in element attribute:', sel);
-                        return email;
-                    }
-                }
-            } catch (e) { /* ignore */ }
-        }
-
-        // Strategy 5: profile / account related element IDs and classes (mectrl, classic OWA)
-        const textSelectors = [
-            '#mectrl_currentAccount_secondary',
-            '.mectrl_truncate[id*="secondary"]',
-            '[id*="currentAccount_secondary"]',
-            '[id*="currentAccount"]',
-            '[id*="upn"]',
-            '[class*="account-email"]',
-            '[class*="user-email"]',
-            '[class*="profile-email"]',
-        ];
-        for (const sel of textSelectors) {
-            try {
-                for (const el of document.querySelectorAll(sel)) {
-                    const text = el.textContent?.trim() || '';
-                    if (text.includes('@')) {
-                        const email = extractEmail(text);
-                        if (email) {
-                            console.log('[CalendarLiberator] Found email in element text:', sel);
-                            return email;
-                        }
-                    }
-                }
-            } catch (e) { /* ignore */ }
-        }
-
-        // Strategy 6: login_hint in any href on the page
-        for (const link of document.querySelectorAll('a[href*="login_hint"]')) {
-            const href = link.getAttribute('href') || '';
-            try {
-                const decoded = decodeURIComponent(href);
-                const match = decoded.match(/login_hint[=:]+([^&\s"']+)/i);
-                if (match) {
-                    const email = extractEmail(decodeURIComponent(match[1]));
-                    if (email) {
-                        console.log('[CalendarLiberator] Found email in login_hint href');
-                        return email;
-                    }
-                }
-            } catch (e) { /* ignore */ }
-        }
-
-        // Strategy 7: broad scan of leaf DOM nodes — finds email displayed anywhere in the UI
-        // (profile panel, top bar, etc.) — limited to short text to avoid false positives
-        for (const el of document.querySelectorAll('span, div, small, label, p')) {
-            if (el.children.length > 0) continue; // leaf nodes only
-            const text = el.textContent?.trim() || '';
-            if (text.length > 6 && text.length < 120 && text.includes('@')) {
-                const email = extractEmail(text);
-                if (email) {
-                    console.log('[CalendarLiberator] Found email via broad DOM scan:', email);
-                    return email;
-                }
-            }
-        }
-
-        // Strategy 8: cookies
-        const cookieEmail = extractEmail(document.cookie);
-        if (cookieEmail) {
-            console.log('[CalendarLiberator] Found email in cookies');
-            return cookieEmail;
-        }
-
-        // Strategy 9: accessible iframes
-        for (const frame of document.querySelectorAll('iframe')) {
-            try {
-                const frameDoc = frame.contentDocument || frame.contentWindow?.document;
-                if (!frameDoc) continue;
-                const titleE = extractEmail(frameDoc.title);
-                if (titleE) return titleE;
-                for (const sel of textSelectors) {
-                    const el = frameDoc.querySelector(sel);
-                    const text = el?.textContent?.trim() || '';
-                    if (text.includes('@')) {
-                        const email = extractEmail(text);
-                        if (email) return email;
-                    }
-                }
-            } catch (err) { /* cross-origin; ignore */ }
-        }
-
-        console.warn('[CalendarLiberator] Could not extract user email - calendar will use default name');
-        return null; // Will use default calendar name
     }
 
     downloadICS(icsContent) {

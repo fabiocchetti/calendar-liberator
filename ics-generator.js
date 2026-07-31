@@ -1,22 +1,18 @@
 // ICS Generator Class
-// Handles conversion of calendar events to ICS format with proper timezone support
+// Handles conversion of calendar events to ICS format (RFC 5545).
+//
+// Timezone strategy: the user selects the UTC offset that matches the times
+// DISPLAYED in Outlook. Each offset is mapped to a representative IANA zone
+// and every event time is converted to UTC using the browser's Intl API,
+// which applies the correct DST rule for each event's own date. This avoids
+// the classic bug of fixed-offset VTIMEZONE definitions shifting events by
+// one hour across DST changes.
 
 class ICSGenerator {
     constructor(timezone = 'UTC+0', userEmail = null, calendarName = null) {
         this.timezone = timezone;
-        this.timezoneOffset = this.parseTimezoneOffset(timezone);
         this.userEmail = userEmail;
         this.calendarName = calendarName;
-    }
-
-    parseTimezoneOffset(timezone) {
-        // Parse timezone string like "UTC+1" or "UTC-5"
-        const match = timezone.match(/UTC([+-])(\d+)/);
-        if (!match) return 0;
-        
-        const sign = match[1] === '+' ? 1 : -1;
-        const hours = parseInt(match[2], 10);
-        return sign * hours;
     }
 
     generate(events) {
@@ -26,23 +22,17 @@ class ICSGenerator {
             : this.userEmail
                 ? `${this.userEmail} - Outlook`
                 : 'Outlook Calendar Export';
-        
-        console.log('ICSGenerator: Calendar name set to:', calendarName);
-        console.log('ICSGenerator: User email:', this.userEmail);
-        
+
         const lines = [
             'BEGIN:VCALENDAR',
             'VERSION:2.0',
-            'PRODID:-//CalendarLiberator//CalendarLiberator 1.0//EN',
+            'PRODID:-//CalendarLiberator//CalendarLiberator 1.1//EN',
             'CALSCALE:GREGORIAN',
             'METHOD:PUBLISH',
-            `X-WR-CALNAME:${calendarName}`,
+            `X-WR-CALNAME:${this.escapeText(calendarName)}`,
             `X-WR-CALDESC:Exported from Outlook Web Calendar using CalendarLiberator`,
             `X-WR-TIMEZONE:${this.getIANATimezone()}`
         ];
-
-        // Add timezone definition
-        lines.push(...this.generateTimezoneDefinition());
 
         // Add events
         for (const event of events) {
@@ -54,23 +44,6 @@ class ICSGenerator {
         return lines.join('\r\n');
     }
 
-    generateTimezoneDefinition() {
-        const tzid = this.getTimezoneId();
-        const standardOffset = this.formatTimezoneOffset(this.timezoneOffset);
-        
-        return [
-            'BEGIN:VTIMEZONE',
-            `TZID:${tzid}`,
-            'BEGIN:STANDARD',
-            `DTSTART:19700101T000000`,
-            `TZOFFSETFROM:${standardOffset}`,
-            `TZOFFSETTO:${standardOffset}`,
-            `TZNAME:${this.timezone}`,
-            'END:STANDARD',
-            'END:VTIMEZONE'
-        ];
-    }
-
     generateEventLines(event) {
         const lines = ['BEGIN:VEVENT'];
         
@@ -78,7 +51,7 @@ class ICSGenerator {
         const uid = this.generateUID(event);
         lines.push(`UID:${uid}`);
         
-        // Add created and modified timestamps
+        // Add created and modified timestamps (absolute UTC)
         const now = this.formatDateTimeUTC(new Date());
         lines.push(`DTSTAMP:${now}`);
         lines.push(`CREATED:${now}`);
@@ -108,13 +81,16 @@ class ICSGenerator {
                 lines.push(`DTEND;VALUE=DATE:${this.formatDateOnly(actualEndDate)}`);
             }
         } else {
-            const startDateTime = this.parseDateTime(event.date, event.startTime);
-            const endDateTime = this.parseDateTime(event.date, event.endTime);
+            const day = this.parseDate(event.date);
+            const start = this.parseTimeComponents(event.startTime);
+            const end = this.parseTimeComponents(event.endTime);
             
-            if (startDateTime && endDateTime) {
-                const tzid = this.getTimezoneId();
-                lines.push(`DTSTART;TZID=${tzid}:${this.formatDateTime(startDateTime)}`);
-                lines.push(`DTEND;TZID=${tzid}:${this.formatDateTime(endDateTime)}`);
+            if (day && start && end) {
+                // Convert the displayed wall-clock times to absolute UTC instants
+                const startUTC = this.wallTimeToUTC(day, start.hours, start.minutes);
+                const endUTC = this.wallTimeToUTC(day, end.hours, end.minutes);
+                lines.push(`DTSTART:${this.formatDateTimeUTC(startUTC)}`);
+                lines.push(`DTEND:${this.formatDateTimeUTC(endUTC)}`);
             }
         }
         
@@ -212,9 +188,8 @@ class ICSGenerator {
         }
     }
 
-    parseDateTime(dateString, timeString) {
-        const date = this.parseDate(dateString);
-        if (!date || !timeString) return null;
+    parseTimeComponents(timeString) {
+        if (!timeString) return null;
         
         try {
             // Support both 12-hour (with AM/PM) and 24-hour time strings
@@ -240,32 +215,53 @@ class ICSGenerator {
             }
 
             if (hours === null) return null;
-
-            const dateTime = new Date(date);
-            dateTime.setHours(hours, minutes, 0, 0);
-            return dateTime;
+            return { hours, minutes };
         } catch (error) {
             console.warn('Error parsing time:', timeString, error);
             return null;
         }
     }
 
-    formatDateTime(date) {
-        // Format as YYYYMMDDTHHMMSS
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
-        const hours = String(date.getHours()).padStart(2, '0');
-        const minutes = String(date.getMinutes()).padStart(2, '0');
-        const seconds = String(date.getSeconds()).padStart(2, '0');
-        
-        return `${year}${month}${day}T${hours}${minutes}${seconds}`;
+    // Offset (in ms) of the mapped IANA zone at a given instant,
+    // computed via the browser's Intl API (DST-aware).
+    getZoneOffsetMs(instant) {
+        const dtf = new Intl.DateTimeFormat('en-US', {
+            timeZone: this.getIANATimezone(),
+            year: 'numeric', month: '2-digit', day: '2-digit',
+            hour: '2-digit', minute: '2-digit', second: '2-digit',
+            hour12: false
+        });
+        const parts = {};
+        for (const part of dtf.formatToParts(instant)) {
+            if (part.type !== 'literal') parts[part.type] = part.value;
+        }
+        // Some environments report midnight as hour "24"
+        const hour = parseInt(parts.hour, 10) % 24;
+        const wallAsUTC = Date.UTC(
+            parseInt(parts.year, 10),
+            parseInt(parts.month, 10) - 1,
+            parseInt(parts.day, 10),
+            hour,
+            parseInt(parts.minute, 10),
+            parseInt(parts.second, 10)
+        );
+        return wallAsUTC - instant.getTime();
+    }
+
+    // Interpret wall-clock components as displayed in the selected timezone
+    // and return the corresponding absolute UTC instant.
+    wallTimeToUTC(day, hours, minutes) {
+        const guessUTC = Date.UTC(day.getFullYear(), day.getMonth(), day.getDate(), hours, minutes, 0);
+        let utc = guessUTC - this.getZoneOffsetMs(new Date(guessUTC));
+        // Refine once: on DST transition days the offset at the first guess
+        // may differ from the offset at the computed instant
+        utc = guessUTC - this.getZoneOffsetMs(new Date(utc));
+        return new Date(utc);
     }
 
     formatDateTimeUTC(date) {
-        // Convert to UTC and format as YYYYMMDDTHHMMSSZ
-        const utcDate = new Date(date.getTime() - (this.timezoneOffset * 60 * 60 * 1000));
-        return this.formatDateTime(utcDate) + 'Z';
+        // Format an absolute instant as YYYYMMDDTHHMMSSZ
+        return date.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
     }
 
     formatDateOnly(date) {
@@ -277,18 +273,10 @@ class ICSGenerator {
         return `${year}${month}${day}`;
     }
 
-    formatTimezoneOffset(offsetHours) {
-        const sign = offsetHours >= 0 ? '+' : '-';
-        const hours = String(Math.abs(offsetHours)).padStart(2, '0');
-        return `${sign}${hours}00`;
-    }
-
-    getTimezoneId() {
-        return `CustomTZ${this.timezone.replace(/[^A-Za-z0-9]/g, '')}`;
-    }
-
     getIANATimezone() {
-        // Map common UTC offsets to IANA timezone names
+        // Map UTC offsets to representative IANA timezone names.
+        // The zone is only used to derive the correct UTC offset for each
+        // event date (including DST), so a representative zone is sufficient.
         const timezoneMap = {
             'UTC-12': 'Etc/GMT+12',
             'UTC-11': 'Etc/GMT+11',
@@ -302,9 +290,9 @@ class ICSGenerator {
             'UTC-3': 'America/Argentina/Buenos_Aires',
             'UTC-2': 'Etc/GMT+2',
             'UTC-1': 'Atlantic/Azores',
-            'UTC+0': 'UTC',
-            'UTC+1': 'Europe/London',
-            'UTC+2': 'Europe/Berlin',
+            'UTC+0': 'Europe/London',
+            'UTC+1': 'Europe/Rome',
+            'UTC+2': 'Europe/Helsinki',
             'UTC+3': 'Europe/Moscow',
             'UTC+4': 'Asia/Dubai',
             'UTC+5': 'Asia/Karachi',

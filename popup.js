@@ -18,7 +18,15 @@ class CalendarLiberatorPopup {
     init() {
         // Set up event listeners
         this.exportButton.addEventListener('click', () => this.startExport());
-        
+
+        // Listen for progress updates from the content script (registered once)
+        chrome.runtime.onMessage.addListener((message) => {
+            if (message.action === 'exportProgress') {
+                this.updateStatus(message.status, 'loading');
+                this.setProgress(message.progress);
+            }
+        });
+
         // Detect user's timezone and set as default
         this.detectUserTimezone();
         
@@ -131,14 +139,6 @@ class CalendarLiberatorPopup {
                 }
             });
 
-            // Listen for progress updates
-            chrome.runtime.onMessage.addListener((message) => {
-                if (message.action === 'exportProgress') {
-                    this.updateStatus(message.status, 'loading');
-                    this.setProgress(message.progress);
-                }
-            });
-
         } catch (error) {
             this.handleExportError(`Export failed: ${error.message}`);
         }
@@ -163,8 +163,13 @@ class CalendarLiberatorPopup {
     }
 
     updateStatus(text, type = 'ready') {
-        // Replace \n with <br> for line breaks in HTML
-        this.statusText.innerHTML = text.replace(/\n/g, '<br>');
+        // Render as plain text with line breaks (no innerHTML: the text may
+        // contain page-derived content, e.g. the detected page language)
+        this.statusText.textContent = '';
+        String(text).split('\n').forEach((line, index) => {
+            if (index > 0) this.statusText.appendChild(document.createElement('br'));
+            this.statusText.appendChild(document.createTextNode(line));
+        });
         this.statusSection.className = `status-section ${type}`;
     }
 
@@ -180,13 +185,4 @@ class CalendarLiberatorPopup {
 // Initialize popup when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
     new CalendarLiberatorPopup();
-});
-
-// Handle messages from content script
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-    if (message.action === 'exportProgress') {
-        // Progress updates are handled in startExport()
-    } else if (message.action === 'exportComplete') {
-        console.log('[CalendarLiberator] Export completed:', message.eventCount, 'events');
-    }
 });
