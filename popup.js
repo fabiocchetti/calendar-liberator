@@ -98,6 +98,7 @@ class CalendarLiberatorPopup {
             if (chrome.runtime.lastError) {
                 // Real error: the page must be refreshed to inject the script
                 this.showError("Extension not ready. Please refresh the Outlook page.");
+                return;
             }
             this.showReadyState();
         });
