@@ -1,25 +1,46 @@
-/* CalendarLiberator Popup Styles
-   Flat, minimal, no gradients, no animations. */
+/* Calendar Liberator — Popup
+   Flat UI, dynamic light/dark via prefers-color-scheme.
+   Light theme is the brand default; dark derives from the same rules:
+   violet only on actionable elements, everything else neutral. */
+
+@font-face {
+    font-family: 'Space Grotesk';
+    src: url('fonts/space-grotesk-600.woff2') format('woff2');
+    font-weight: 600;
+    font-style: normal;
+    font-display: swap;
+}
 
 :root {
-    --color-primary: #5B50D6;
-    --color-primary-hover: #4C43BC;
-    --color-primary-active: #3F389F;
-    --color-primary-soft: #EEEDFA;
+    --violet: #6C4CF0;         /* brand, primary button */
+    --violet-hover: #5B3DDB;
+    --violet-ui: #6C4CF0;      /* checked checkboxes */
+    --link: #5B3DDB;
+    --ink: #FFFFFF;            /* popup background */
+    --surface: #F6F5FA;        /* input fields */
+    --border: #E3E1EE;
+    --border-hover: #C9C6DC;
+    --text: #16151C;
+    --muted: #6E6A80;
+    --error: #C33F3F;
 
-    --color-surface: #FFFFFF;
-    --color-bg: #F7F6FB;
-    --color-border: #E1DFEE;
-    --color-border-strong: #C7C4DF;
+    --chevron: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236E6A80' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+}
 
-    --color-text: #1C1B29;
-    --color-text-muted: #63617A;
+@media (prefers-color-scheme: dark) {
+    :root {
+        --violet-ui: #8B72F6;
+        --link: #A18CF8;
+        --ink: #16151C;
+        --surface: #1E1D26;
+        --border: #302E3C;
+        --border-hover: #403D50;
+        --text: #F3F2F8;
+        --muted: #9A96AC;
+        --error: #E06C6C;
 
-    --color-success: #2E7D5B;
-    --color-error: #C33F3F;
-
-    --focus-ring: 0 0 0 3px rgba(91, 80, 214, 0.18);
-    --radius: 6px;
+        --chevron: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239A96AC' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    }
 }
 
 * {
@@ -29,243 +50,215 @@
 }
 
 body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-    font-size: 13px;
-    line-height: 1.5;
-    color: var(--color-text);
-    background: var(--color-surface);
-    width: 300px;
-}
-
-.container {
-    display: flex;
-    flex-direction: column;
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    font-size: 13.5px;
+    line-height: 1.45;
+    color: var(--text);
+    background: var(--ink);
+    width: 340px;
 }
 
 /* Header */
 .header {
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 14px 16px;
-    border-bottom: 1px solid var(--color-border);
+    gap: 12px;
+    padding: 14px 24px;
+    border-bottom: 1px solid var(--border);
 }
 
 .header img {
-    width: 22px;
-    height: 22px;
+    width: 36px;
+    height: 36px;
     display: block;
 }
 
-.header h1 {
-    font-size: 14px;
-    font-weight: 650;
-    letter-spacing: -0.1px;
+.wordmark {
+    font-family: 'Space Grotesk', system-ui, sans-serif;
+    font-size: 19px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
 }
 
-/* Controls */
-.controls {
-    padding: 16px;
+/* Ready state (form) */
+#readyState {
+    padding: 20px 24px 24px;
     display: flex;
     flex-direction: column;
-    gap: 14px;
+    gap: 20px;
 }
 
-.form-group {
+#readyState[hidden],
+#emptyState[hidden] {
+    display: none;
+}
+
+.field {
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 8px;
 }
 
-.form-group > label {
+.field label[for],
+.field-label {
     font-size: 11px;
     font-weight: 600;
     text-transform: uppercase;
-    letter-spacing: 0.4px;
-    color: var(--color-text-muted);
+    letter-spacing: 0.07em;
+    color: var(--muted);
 }
 
-.calendar-name-input,
-.timezone-select {
+input[type="text"],
+select {
     width: 100%;
-    padding: 8px 10px;
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius);
-    font-size: 13px;
+    padding: 10px 14px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 13.5px;
     font-family: inherit;
-    background: var(--color-surface);
-    color: var(--color-text);
+    background: var(--surface);
+    color: var(--text);
     outline: none;
 }
 
-.calendar-name-input::placeholder {
-    color: var(--color-text-muted);
+input[type="text"]::placeholder {
+    color: var(--muted);
 }
 
-.calendar-name-input:hover,
-.timezone-select:hover {
-    border-color: var(--color-border-strong);
+input[type="text"]:hover,
+select:hover {
+    border-color: var(--border-hover);
 }
 
-.calendar-name-input:focus,
-.timezone-select:focus {
-    border-color: var(--color-primary);
-    box-shadow: var(--focus-ring);
+input[type="text"]:focus,
+select:focus {
+    border-color: var(--violet);
 }
 
-.timezone-select {
+select {
     padding-right: 32px;
     cursor: pointer;
     appearance: none;
-    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2363617A' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-image: var(--chevron);
     background-repeat: no-repeat;
-    background-position: right 10px center;
+    background-position: right 12px center;
     background-size: 14px;
 }
 
-/* Checkboxes */
-.checkbox-group {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-}
-
-.checkbox-label {
+/* Custom checkboxes */
+.check {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
     cursor: pointer;
-    padding: 2px 0;
+    padding: 4px 0;
+    font-size: 13.5px;
+    font-weight: 400;
+    color: var(--text);
 }
 
-.checkbox-label input[type="checkbox"] {
-    width: 15px;
-    height: 15px;
-    margin: 0;
-    cursor: pointer;
-    accent-color: var(--color-primary);
+.check input[type="checkbox"] {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
 }
 
-.checkbox-label span {
+.check .box {
+    flex: none;
+    width: 18px;
+    height: 18px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--surface);
+}
+
+.check:hover .box {
+    border-color: var(--border-hover);
+}
+
+.check input:checked + .box {
+    background: var(--violet-ui);
+    border-color: var(--violet-ui);
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='5 12.5 10 17.5 19 6.5'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 12px;
+}
+
+.check input:focus-visible + .box {
+    border-color: var(--violet);
+}
+
+.check span:last-child {
     user-select: none;
-    font-size: 13px;
-    color: var(--color-text);
 }
 
-/* Export Button */
-.export-btn {
-    background: var(--color-primary);
+/* Primary button */
+.primary {
+    background: var(--violet);
     color: #FFFFFF;
     border: none;
-    padding: 10px 16px;
-    border-radius: var(--radius);
-    font-size: 13px;
+    padding: 13px 16px;
+    border-radius: 9px;
+    font-size: 15px;
     font-weight: 600;
     font-family: inherit;
     cursor: pointer;
     width: 100%;
 }
 
-.export-btn:hover:not(:disabled) {
-    background: var(--color-primary-hover);
+.primary:hover:not(:disabled) {
+    background: var(--violet-hover);
 }
 
-.export-btn:active:not(:disabled) {
-    background: var(--color-primary-active);
+.primary:disabled {
+    opacity: 0.55;
+    cursor: wait;
 }
 
-.export-btn:focus-visible {
-    box-shadow: var(--focus-ring);
+/* Real errors only (never for states) */
+.error {
+    font-size: 12.5px;
+    color: var(--error);
+    text-align: center;
 }
 
-.export-btn:disabled {
-    background: var(--color-border);
-    color: var(--color-text-muted);
-    cursor: not-allowed;
-}
-
-/* Status Section */
-.status-section {
-    padding: 12px 16px;
-    background: var(--color-bg);
-    border-top: 1px solid var(--color-border);
-}
-
-.status-content {
+/* Empty state */
+.empty {
+    padding: 48px 24px 44px;
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    align-items: center;
+    text-align: center;
 }
 
-.status-text {
-    font-size: 12px;
-    color: var(--color-text-muted);
+.empty img {
+    width: 64px;
+    height: 64px;
 }
 
-.progress-bar {
-    height: 3px;
-    background: var(--color-border);
-    border-radius: 2px;
-    overflow: hidden;
-    opacity: 0;
+.empty h2 {
+    margin-top: 20px;
+    font-size: 17px;
+    font-weight: 600;
 }
 
-.progress-fill {
-    height: 100%;
-    background: var(--color-primary);
-    width: 0%;
-    border-radius: 2px;
+.empty p {
+    margin-top: 8px;
+    font-size: 13.5px;
+    color: var(--muted);
+    max-width: 240px;
 }
 
-/* Status States */
-.status-section.loading .status-text {
-    color: var(--color-primary);
+.empty a {
+    margin-top: 20px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--link);
+    text-decoration: none;
 }
 
-.status-section.loading .progress-bar {
-    opacity: 1;
-}
-
-.status-section.success .status-text {
-    color: var(--color-success);
-}
-
-.status-section.error .status-text {
-    color: var(--color-error);
-}
-
-/* Dark mode */
-@media (prefers-color-scheme: dark) {
-    :root {
-        --color-primary: #8B83E4;
-        --color-primary-hover: #9D97EA;
-        --color-primary-active: #B0ABEF;
-        --color-primary-soft: #26244A;
-
-        --color-surface: #1B1A24;
-        --color-bg: #14131B;
-        --color-border: #33314A;
-        --color-border-strong: #4B4870;
-
-        --color-text: #E9E8F2;
-        --color-text-muted: #9B99B3;
-
-        --color-success: #5FBF93;
-        --color-error: #E07777;
-
-        --focus-ring: 0 0 0 3px rgba(139, 131, 228, 0.25);
-    }
-
-    .export-btn {
-        color: #14131B;
-    }
-
-    .export-btn:disabled {
-        background: var(--color-border);
-        color: var(--color-text-muted);
-    }
-
-    .timezone-select {
-        background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239B99B3' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
-    }
+.empty a:hover {
+    text-decoration: underline;
 }

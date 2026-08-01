@@ -78,7 +78,16 @@ FILES=(
     "content.js"
     "ics-generator.js"
     "LICENSE"
-    "icons"
+    "icon-16.png"
+    "icon-32.png"
+    "icon-48.png"
+    "icon-128.png"
+    "fonts"
+)
+
+# Firefox-only files (96px icon is required only by Firefox)
+FIREFOX_FILES=(
+    "icon-96.png"
 )
 
 copy_files() {
@@ -96,8 +105,9 @@ copy_files() {
     done
 }
 
-# Adds the Firefox-specific gecko settings to the manifest inside BUILD_DIR
-# (Firefox requires an explicit add-on ID for Manifest V3 extensions)
+# Adds the Firefox-specific gecko settings and 96px icon to the manifest
+# inside BUILD_DIR (Firefox requires an explicit add-on ID for Manifest V3
+# extensions; the 96px icon is used only by Firefox)
 add_firefox_settings() {
     node -e "
         const fs = require('fs');
@@ -109,6 +119,8 @@ add_firefox_settings() {
                 strict_min_version: '109.0'
             }
         };
+        manifest.icons['96'] = 'icon-96.png';
+        manifest.action.default_icon['96'] = 'icon-96.png';
         fs.writeFileSync(path, JSON.stringify(manifest, null, 2) + '\n');
     "
 }
@@ -136,6 +148,14 @@ rm -rf "$BUILD_DIR"/*
 # Firefox package
 echo "Creating Firefox package..."
 copy_files
+for file in "${FIREFOX_FILES[@]}"; do
+    if [ -e "$file" ]; then
+        cp "$file" "$BUILD_DIR/"
+    else
+        echo "  ERROR: $file not found"
+        exit 1
+    fi
+done
 add_firefox_settings
 generate_readme "firefox" "Firefox Add-ons" "$FIREFOX_INSTALL" "$BUILD_DIR/README.md"
 cd "$BUILD_DIR"

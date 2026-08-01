@@ -1,4 +1,4 @@
-# CalendarLiberator
+# Calendar Liberator
 
 **Export your Outlook calendar to ICS format in seconds. Works with any Outlook or Office 365 web domain.**
 
@@ -88,7 +88,7 @@ Each package includes a browser-specific README with tailored installation instr
 ## Usage
 
 1. **Navigate to your Outlook Web calendar** (any supported domain)
-2. **Click the CalendarLiberator extension icon**
+2. **Click the Calendar Liberator extension icon**
 3. **Select your timezone** from the dropdown (auto-detected by default)
 4. **(Optional) Enable filters:**
    - Check "include declined" to export declined events
@@ -222,12 +222,12 @@ calendar-liberator/
 ├── popup.js               # Popup logic
 ├── content.js             # Calendar scraping logic
 ├── ics-generator.js       # ICS file generation
-├── icons/                 # Extension icons (generated)
-├── scripts/               # Icon generation script
-├── assets/                # Store / documentation artwork
+├── icon-*.png             # Extension icons
+├── fonts/                 # Space Grotesk 600 (wordmark, bundled locally)
+├── assets/                # SVG icon masters (design reference)
+├── test/                  # ICS generator tests
 ├── LICENSE                # MIT License
 ├── PRIVACY.md             # Privacy policy
-├── BRAND.md               # Brand identity (palette, logo, typography)
 ├── BUILD.md               # Build & publishing guide
 ├── .gitignore             # Git exclusions
 └── README.md              # This file
@@ -265,4 +265,4 @@ A: Future versions may support automated navigation/pagination for longer ranges
 
 MIT License
 
-**CalendarLiberator — Free your time!**
+**Calendar Liberator — Free your time!**

@@ -1,36 +1,47 @@
-// CalendarLiberator Popup Script
-// Handles UI interactions and communication with content script
+// Calendar Liberator — Popup Script
+// Handles the two popup states (ready / empty) and the communication
+// with the content script.
 
 class CalendarLiberatorPopup {
     constructor() {
+        this.readyState = document.getElementById('readyState');
+        this.emptyState = document.getElementById('emptyState');
         this.exportButton = document.getElementById('exportButton');
         this.calendarNameInput = document.getElementById('calendarName');
         this.timezoneSelect = document.getElementById('timezone');
         this.includeDeclinedCheckbox = document.getElementById('includeDeclined');
         this.includeOOOCheckbox = document.getElementById('includeOOO');
-        this.statusSection = document.getElementById('status');
-        this.statusText = document.querySelector('.status-text');
-        this.progressBar = document.querySelector('.progress-fill');
-        
+        this.errorText = document.getElementById('errorText');
+        this.openOutlookLink = document.getElementById('openOutlook');
+
         this.init();
     }
 
     init() {
-        // Set up event listeners
         this.exportButton.addEventListener('click', () => this.startExport());
 
-        // Listen for progress updates from the content script (registered once)
+        // The empty-state link opens Outlook in a new tab
+        this.openOutlookLink.addEventListener('click', (event) => {
+            event.preventDefault();
+            chrome.tabs.create({ url: 'https://outlook.office.com/calendar' });
+            window.close();
+        });
+
+        // Any change to the options resets the button to its initial state
+        const resetButton = () => this.setButtonLabel('Export .ics');
+        this.calendarNameInput.addEventListener('input', resetButton);
+        this.timezoneSelect.addEventListener('change', resetButton);
+        this.includeDeclinedCheckbox.addEventListener('change', resetButton);
+        this.includeOOOCheckbox.addEventListener('change', resetButton);
+
+        // Progress updates from the content script (registered once)
         chrome.runtime.onMessage.addListener((message) => {
             if (message.action === 'exportProgress') {
-                this.updateStatus(message.status, 'loading');
-                this.setProgress(message.progress);
+                this.setButtonLabel(`Exporting… ${message.progress}%`);
             }
         });
 
-        // Detect user's timezone and set as default
         this.detectUserTimezone();
-        
-        // Check if we're on an Outlook page
         this.checkOutlookPage();
     }
 
@@ -39,71 +50,67 @@ class CalendarLiberatorPopup {
             // Get browser's timezone offset in hours
             const offset = new Date().getTimezoneOffset();
             const utcOffset = -offset / 60; // Convert to hours (negative because getTimezoneOffset is reversed)
-            
+
             // Build UTC string (e.g., "UTC+1", "UTC-5")
-            let utcString;
-            if (utcOffset >= 0) {
-                // Handle whole numbers and round half-hours to nearest
-                const roundedOffset = Math.round(utcOffset);
-                utcString = `UTC+${roundedOffset}`;
-            } else {
-                const roundedOffset = Math.round(utcOffset);
-                utcString = `UTC${roundedOffset}`; // negative sign already included
-            }
-            
-            // Try to find matching option in the dropdown
+            const roundedOffset = Math.round(utcOffset);
+            const utcString = roundedOffset >= 0 ? `UTC+${roundedOffset}` : `UTC${roundedOffset}`;
+
             const matchingOption = Array.from(this.timezoneSelect.options)
                 .find(option => option.value === utcString);
-                
+
             if (matchingOption) {
                 matchingOption.selected = true;
-                console.log('[CalendarLiberator] Auto-detected timezone:', utcString);
-            } else {
-                console.warn('[CalendarLiberator] Could not find matching option for', utcString, '- using default UTC+0');
             }
         } catch (error) {
-            console.warn('[CalendarLiberator] Could not detect timezone, using UTC+0 default:', error.message);
+            // Fail silently: keep the UTC+0 default
         }
     }
 
     async checkOutlookPage() {
+        let tab;
         try {
-            const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-            
-            const isOutlookUrl = (() => {
-                try {
-                    const { hostname } = new URL(tab.url);
-                    return (
-                        hostname.includes('outlook.office.com') ||
-                        hostname.endsWith('office.com') ||
-                        hostname.includes('outlook.com') ||
-                        (hostname.endsWith('mcas.ms') && hostname.includes('outlook'))
-                    );
-                } catch (err) {
-                    return false;
-                }
-            })();
-
-            if (!isOutlookUrl) {
-                this.showError('Please navigate to your Outlook calendar first');
-                this.exportButton.disabled = true;
-                return;
-            }
-            
-            // Check if content script is ready
-            chrome.tabs.sendMessage(tab.id, { action: 'ping' }, (response) => {
-                if (chrome.runtime.lastError) {
-                    this.showError('Extension not ready.\nPlease refresh the Outlook page.');
-                    this.exportButton.disabled = true;
-                } else {
-                    this.updateStatus('Ready to export your calendar', 'ready');
-                }
-            });
-            
+            [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
         } catch (error) {
-            this.showError('Cannot access current tab. Please refresh and try again.');
-            this.exportButton.disabled = true;
+            this.showEmptyState();
+            return;
         }
+
+        let isOutlookUrl = false;
+        try {
+            const { hostname } = new URL(tab.url);
+            isOutlookUrl = (
+                hostname.includes('outlook.office.com') ||
+                hostname.endsWith('office.com') ||
+                hostname.includes('outlook.com') ||
+                (hostname.endsWith('mcas.ms') && hostname.includes('outlook'))
+            );
+        } catch (err) {
+            isOutlookUrl = false;
+        }
+
+        if (!isOutlookUrl) {
+            this.showEmptyState();
+            return;
+        }
+
+        // On Outlook: check that the content script is ready
+        chrome.tabs.sendMessage(tab.id, { action: 'ping' }, () => {
+            if (chrome.runtime.lastError) {
+                // Real error: the page must be refreshed to inject the script
+                this.showError("Extension not ready. Please refresh the Outlook page.");
+            }
+            this.showReadyState();
+        });
+    }
+
+    showReadyState() {
+        this.emptyState.hidden = true;
+        this.readyState.hidden = false;
+    }
+
+    showEmptyState() {
+        this.readyState.hidden = true;
+        this.emptyState.hidden = false;
     }
 
     async startExport() {
@@ -111,15 +118,14 @@ class CalendarLiberatorPopup {
         const calendarName = this.calendarNameInput.value.trim();
         const includeDeclined = this.includeDeclinedCheckbox.checked;
         const includeOOO = this.includeOOOCheckbox.checked;
-        
+
         try {
             this.exportButton.disabled = true;
-            this.updateStatus('Starting calendar export...', 'loading');
-            this.setProgress(0);
+            this.hideError();
+            this.setButtonLabel('Exporting…');
 
             const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-            
-            // Send export command to content script
+
             chrome.tabs.sendMessage(tab.id, {
                 action: 'exportCalendar',
                 timezone: selectedTimezone,
@@ -127,58 +133,43 @@ class CalendarLiberatorPopup {
                 includeDeclined: includeDeclined,
                 includeOOO: includeOOO
             }, (response) => {
+                this.exportButton.disabled = false;
+
                 if (chrome.runtime.lastError) {
-                    this.handleExportError('Failed to communicate with page. Please refresh and try again.');
+                    this.setButtonLabel('Export .ics');
+                    this.showError('Failed to communicate with the page. Please refresh and try again.');
                     return;
                 }
-                
+
                 if (response && response.success) {
-                    this.handleExportSuccess(response);
+                    // The event count lives in the button
+                    const count = response.eventCount;
+                    const label = count === 1 ? '1 event' : `${count} events`;
+                    this.setButtonLabel(`Export .ics — ${label}`);
                 } else {
-                    this.handleExportError(response?.error || 'Export failed for unknown reason');
+                    this.setButtonLabel('Export .ics');
+                    this.showError(response?.error || 'Export failed.');
                 }
             });
 
         } catch (error) {
-            this.handleExportError(`Export failed: ${error.message}`);
+            this.exportButton.disabled = false;
+            this.setButtonLabel('Export .ics');
+            this.showError(`Export failed: ${error.message}`);
         }
     }
 
-    handleExportSuccess(response) {
-        this.updateStatus(`✅ Calendar exported! ${response.eventCount} events saved`, 'success');
-        this.setProgress(100);
-        
-        // Re-enable button after delay
-        setTimeout(() => {
-            this.exportButton.disabled = false;
-            this.updateStatus('Ready to export your calendar', 'ready');
-            this.setProgress(0);
-        }, 3000);
-    }
-
-    handleExportError(errorMessage) {
-        this.showError(errorMessage);
-        this.exportButton.disabled = false;
-        this.setProgress(0);
-    }
-
-    updateStatus(text, type = 'ready') {
-        // Render as plain text with line breaks (no innerHTML: the text may
-        // contain page-derived content, e.g. the detected page language)
-        this.statusText.textContent = '';
-        String(text).split('\n').forEach((line, index) => {
-            if (index > 0) this.statusText.appendChild(document.createElement('br'));
-            this.statusText.appendChild(document.createTextNode(line));
-        });
-        this.statusSection.className = `status-section ${type}`;
+    setButtonLabel(text) {
+        this.exportButton.textContent = text;
     }
 
     showError(message) {
-        this.updateStatus(`❌ ${message}`, 'error');
+        this.errorText.textContent = message;
+        this.errorText.hidden = false;
     }
 
-    setProgress(percentage) {
-        this.progressBar.style.width = `${percentage}%`;
+    hideError() {
+        this.errorText.hidden = true;
     }
 }
 

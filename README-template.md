@@ -1,4 +1,4 @@
-# CalendarLiberator
+# Calendar Liberator
 
 **Liberate your work Outlook calendar! Export 28 days of events (7 days back + 21 days forward) from ANY Outlook or Office 365 web domain. Export your meetings—including correct timezone—directly to an ICS file for instant use in iOS, Google Calendar, or anywhere.**
 
@@ -39,7 +39,7 @@ _(Coming soon - extension pending review)_
 
 ## Requirements
 
-**IMPORTANT: Before using CalendarLiberator, ensure your Outlook settings are configured correctly:**
+**IMPORTANT: Before using Calendar Liberator, ensure your Outlook settings are configured correctly:**
 
 ### Required Outlook Settings:
 1. **Language: English** 
@@ -52,7 +52,7 @@ _(Coming soon - extension pending review)_
 
 1. **Configure Outlook language** (see Requirements above)
 2. **Navigate to your Outlook Web calendar** (any supported domain)
-3. **Click the CalendarLiberator extension icon** in your browser toolbar
+3. **Click the Calendar Liberator extension icon** in your browser toolbar
 4. **Select your timezone** from the dropdown (auto-detected by default)
 5. **Click "Export Outlook Calendar to ICS"**
 6. **Wait for completion** - the extension will:
@@ -75,6 +75,8 @@ calendar-liberator/
 ├── popup.js               # Popup logic and UI interactions
 ├── content.js             # Main calendar interaction logic
 ├── ics-generator.js       # ICS file generation module
+├── icon-*.png             # Extension icons
+├── fonts/                 # Bundled wordmark font (Space Grotesk 600)
 └── README.md             # This file
 ```
 
@@ -187,7 +189,7 @@ Found a bug or have an improvement? Feel free to:
 **Improved:**
 - Event times now converted to UTC with correct per-date DST handling (fixes one-hour shifts across daylight-saving changes)
 - Corrected timezone mapping (UTC+0 = London, UTC+1 = Rome/Berlin, UTC+2 = Helsinki/Athens)
-- New flat, minimal popup design with dark mode support
+- New flat, minimal popup design with light/dark mode support
 - Extension icons included (16/32/48/128)
 - Firefox package now includes the required `browser_specific_settings.gecko` ID
 - Semi-transparent overlay blocks accidental page interactions during export (auto-removed on completion, failure, or after 60 seconds)
@@ -221,4 +223,4 @@ Found a bug or have an improvement? Feel free to:
 
 ---
 
-**CalendarLiberator — Free your time!**
+**Calendar Liberator — Free your time!**

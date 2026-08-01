@@ -1,12 +1,12 @@
-# Privacy Policy — CalendarLiberator
+# Privacy Policy — Calendar Liberator
 
 **Last updated: July 2026**
 
-CalendarLiberator is a browser extension that exports events from your Outlook Web calendar to a local ICS file.
+Calendar Liberator is a browser extension that exports events from your Outlook Web calendar to a local ICS file.
 
 ## Data Collection
 
-**CalendarLiberator collects, transmits, and stores absolutely no personal data.**
+**Calendar Liberator collects, transmits, and stores absolutely no personal data.**
 
 - All processing happens locally in your browser.
 - No data is ever sent to external servers, analytics platforms, or third parties.

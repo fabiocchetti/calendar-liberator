@@ -2,7 +2,7 @@
 
 ## ✅ DONE: Extension Icons
 
-Icons have been generated (16x16, 32x32, 48x48, 128x128 in `icons/`, plus `assets/logo-512.png` for store listings) and are referenced in `manifest.json`. See `BRAND.md` for the design system and `scripts/generate_icons.py` to regenerate them.
+Icons (16/32/48/96/128 px) live at the project root and are referenced in `manifest.json`. The 96px icon is added to the Firefox package only, by `build.sh`. Do not modify them; the SVG masters are kept in `assets/` as reference.
 
 ### 1. Store Listing Screenshots (REQUIRED — still needed)
 
@@ -50,7 +50,7 @@ Export your Outlook calendar to ICS format. One-click export with timezone selec
 ### Detailed Description
 
 ```markdown
-CalendarLiberator exports your Outlook calendar to standard ICS format in seconds.
+Calendar Liberator exports your Outlook calendar to standard ICS format in seconds.
 
 ✨ KEY FEATURES
 • One-click export with simple popup interface
@@ -110,7 +110,7 @@ outlook, calendar, export, ics, office 365, calendar backup, calendar sync, prod
 - [ ] Screenshot 3: Success/Import
 - [ ] (Optional) Promotional tile 440x280
 - [ ] (Optional) Marquee 1400x560
-- [ ] (Optional) Edge store icon 300x300 (resize `assets/logo-512.png`)
+- [ ] (Optional) Edge store icon 300x300 (export from `assets/icon-master.svg`)
 
 ---
 

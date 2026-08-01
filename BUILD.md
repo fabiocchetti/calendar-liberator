@@ -17,11 +17,11 @@ The version number is read automatically from `manifest.json`.
 
 ## What the Build Does
 
-1. Copies the extension files (`manifest.json`, `popup.*`, `content.js`, `ics-generator.js`, `LICENSE`, `icons/`) into a clean build directory.
+1. Copies the extension files (`manifest.json`, `popup.*`, `content.js`, `ics-generator.js`, `LICENSE`, `icon-*.png`, `fonts/`) into a clean build directory.
 2. Generates a **browser-specific README** from `README-template.md`, replacing two placeholders:
    - `{{STORE_NAME}}` — store name shown in the installation section
    - `{{INSTALL_INSTRUCTIONS}}` — per-browser installation steps (defined as variables in `build.sh`)
-3. For **Firefox only**, injects `browser_specific_settings.gecko` (add-on ID and `strict_min_version`) into the manifest — required by Firefox for Manifest V3 extensions. Chrome and Edge packages use the manifest as-is.
+3. For **Firefox only**, adds the 96px icon and injects `browser_specific_settings.gecko` (add-on ID and `strict_min_version`) into the manifest — required by Firefox for Manifest V3 extensions. Chrome and Edge packages use the manifest as-is.
 4. Zips each package into `dist/` and cleans up.
 
 To change the store README content, edit `README-template.md` (keeping the two placeholders). To change installation steps, edit the `*_INSTALL` variables in `build.sh`.
@@ -32,19 +32,15 @@ To change the store README content, edit `README-template.md` (keeping the two p
 # Inspect the generated README inside a package
 unzip -p dist/calendar-liberator-chrome-*.zip README.md | less
 
-# Check that the Firefox manifest has the gecko ID
+# Check that the Firefox manifest has the gecko ID and the 96px icon
 unzip -p dist/calendar-liberator-firefox-*.zip manifest.json
 ```
 
-## Regenerating Icons
+## Icons
 
-Icons are generated programmatically (see `BRAND.md`):
-
-```bash
-python3 -m venv .venv
-.venv/bin/pip install Pillow
-.venv/bin/python scripts/generate_icons.py
-```
+The packaged icons (`icon-*.png` at the project root) are final assets — do
+not modify them. The SVG masters live in `assets/` in case new sizes are ever
+needed (e.g. the 300x300 Edge store icon).
 
 ## Testing Before Publishing
 
