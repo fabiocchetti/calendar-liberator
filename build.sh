@@ -78,17 +78,14 @@ FILES=(
     "content.js"
     "ics-generator.js"
     "LICENSE"
-    "icon-16.png"
-    "icon-32.png"
-    "icon-48.png"
-    "icon-128.png"
+    "icons"
     "fonts"
 )
 
-# Firefox-only files (96px icon is required only by Firefox)
-FIREFOX_FILES=(
-    "icon-96.png"
-)
+# The 96px icon is required only by Firefox; remove it from Chrome/Edge builds
+remove_non_firefox_icons() {
+    rm -f "$BUILD_DIR/icons/icon-96.png"
+}
 
 copy_files() {
     for file in "${FILES[@]}"; do
@@ -119,8 +116,8 @@ add_firefox_settings() {
                 strict_min_version: '109.0'
             }
         };
-        manifest.icons['96'] = 'icon-96.png';
-        manifest.action.default_icon['96'] = 'icon-96.png';
+        manifest.icons['96'] = 'icons/icon-96.png';
+        manifest.action.default_icon['96'] = 'icons/icon-96.png';
         fs.writeFileSync(path, JSON.stringify(manifest, null, 2) + '\n');
     "
 }
@@ -128,6 +125,7 @@ add_firefox_settings() {
 # Chrome package
 echo "Creating Chrome package..."
 copy_files
+remove_non_firefox_icons
 generate_readme "chrome" "Chrome Web Store" "$CHROME_INSTALL" "$BUILD_DIR/README.md"
 cd "$BUILD_DIR"
 zip -r "../$DIST_DIR/calendar-liberator-chrome-$VERSION.zip" . -x "*.DS_Store"
@@ -138,6 +136,7 @@ rm -rf "$BUILD_DIR"/*
 # Edge package
 echo "Creating Edge package..."
 copy_files
+remove_non_firefox_icons
 generate_readme "edge" "Microsoft Edge Add-ons" "$EDGE_INSTALL" "$BUILD_DIR/README.md"
 cd "$BUILD_DIR"
 zip -r "../$DIST_DIR/calendar-liberator-edge-$VERSION.zip" . -x "*.DS_Store"
@@ -148,14 +147,6 @@ rm -rf "$BUILD_DIR"/*
 # Firefox package
 echo "Creating Firefox package..."
 copy_files
-for file in "${FIREFOX_FILES[@]}"; do
-    if [ -e "$file" ]; then
-        cp "$file" "$BUILD_DIR/"
-    else
-        echo "  ERROR: $file not found"
-        exit 1
-    fi
-done
 add_firefox_settings
 generate_readme "firefox" "Firefox Add-ons" "$FIREFOX_INSTALL" "$BUILD_DIR/README.md"
 cd "$BUILD_DIR"
