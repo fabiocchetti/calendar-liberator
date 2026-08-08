@@ -169,7 +169,7 @@ Each package includes a browser-specific README with appropriate installation in
 
 4. **Timezone issues**
    - Double-check your timezone selection matches Outlook's display
-   - Use the format shown in the dropdown (e.g., "UTC+1", "UTC-5")
+   - Pick the zone for your location (e.g., "Europe/Rome"); the current UTC offset is shown next to each zone
 
 ## License
 
@@ -183,6 +183,12 @@ Found a bug or have an improvement? Feel free to:
 3. Share feedback on compatibility with different Outlook configurations
 
 ## Changelog
+
+### Version 1.1.1
+
+**Fixed:**
+- Timezone selection now uses real IANA zones (e.g. Europe/London, Europe/Rome), auto-detected from the browser — fixes one-hour shifts for users whose actual offset differed from the old fixed "UTC±N"-to-representative-zone mapping
+- Account name/email detection for the exported calendar name is more robust (broader meControl selectors, full dropdown scan, additional boot-data markers)
 
 ### Version 1.1.0
 

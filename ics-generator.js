@@ -1,15 +1,16 @@
 // ICS Generator Class
 // Handles conversion of calendar events to ICS format (RFC 5545).
 //
-// Timezone strategy: the user selects the UTC offset that matches the times
-// DISPLAYED in Outlook. Each offset is mapped to a representative IANA zone
-// and every event time is converted to UTC using the browser's Intl API,
-// which applies the correct DST rule for each event's own date. This avoids
-// the classic bug of fixed-offset VTIMEZONE definitions shifting events by
-// one hour across DST changes.
+// Timezone strategy: the popup passes the IANA timezone (e.g. "Europe/Rome")
+// that matches the times DISPLAYED in Outlook, auto-detected from the browser.
+// A real zone carries its own DST rules, so every event time is converted to
+// UTC via the browser's Intl API with the correct offset for its own date.
+// (A bare "UTC+1" offset is ambiguous — Rome and London can both be UTC+1
+// depending on the season — and mapping it to a representative zone caused
+// one-hour shifts for users in a different zone with the same offset.)
 
 class ICSGenerator {
-    constructor(timezone = 'UTC+0', userEmail = null, calendarName = null) {
+    constructor(timezone = 'UTC', userEmail = null, calendarName = null) {
         this.timezone = timezone;
         this.userEmail = userEmail;
         this.calendarName = calendarName;
@@ -26,11 +27,11 @@ class ICSGenerator {
         const lines = [
             'BEGIN:VCALENDAR',
             'VERSION:2.0',
-            'PRODID:-//CalendarLiberator//CalendarLiberator 1.1//EN',
+            'PRODID:-//Calendar Liberator//Calendar Liberator 1.1//EN',
             'CALSCALE:GREGORIAN',
             'METHOD:PUBLISH',
             `X-WR-CALNAME:${this.escapeText(calendarName)}`,
-            `X-WR-CALDESC:Exported from Outlook Web Calendar using CalendarLiberator`,
+            `X-WR-CALDESC:Exported from Outlook Web Calendar using Calendar Liberator`,
             `X-WR-TIMEZONE:${this.getIANATimezone()}`
         ];
 
@@ -274,38 +275,15 @@ class ICSGenerator {
     }
 
     getIANATimezone() {
-        // Map UTC offsets to representative IANA timezone names.
-        // The zone is only used to derive the correct UTC offset for each
-        // event date (including DST), so a representative zone is sufficient.
-        const timezoneMap = {
-            'UTC-12': 'Etc/GMT+12',
-            'UTC-11': 'Etc/GMT+11',
-            'UTC-10': 'Pacific/Honolulu',
-            'UTC-9': 'America/Anchorage',
-            'UTC-8': 'America/Los_Angeles',
-            'UTC-7': 'America/Denver',
-            'UTC-6': 'America/Chicago',
-            'UTC-5': 'America/New_York',
-            'UTC-4': 'America/Halifax',
-            'UTC-3': 'America/Argentina/Buenos_Aires',
-            'UTC-2': 'Etc/GMT+2',
-            'UTC-1': 'Atlantic/Azores',
-            'UTC+0': 'Europe/London',
-            'UTC+1': 'Europe/Rome',
-            'UTC+2': 'Europe/Helsinki',
-            'UTC+3': 'Europe/Moscow',
-            'UTC+4': 'Asia/Dubai',
-            'UTC+5': 'Asia/Karachi',
-            'UTC+6': 'Asia/Dhaka',
-            'UTC+7': 'Asia/Bangkok',
-            'UTC+8': 'Asia/Singapore',
-            'UTC+9': 'Asia/Tokyo',
-            'UTC+10': 'Australia/Sydney',
-            'UTC+11': 'Pacific/Noumea',
-            'UTC+12': 'Pacific/Auckland'
-        };
-        
-        return timezoneMap[this.timezone] || 'UTC';
+        // The popup sends an IANA timezone name (e.g. "Europe/Rome").
+        // Validate it through the Intl API; fall back to UTC if invalid.
+        try {
+            new Intl.DateTimeFormat('en-US', { timeZone: this.timezone });
+            return this.timezone;
+        } catch (error) {
+            console.warn('Invalid timezone, falling back to UTC:', this.timezone);
+            return 'UTC';
+        }
     }
 
     generateUID(event) {

@@ -5,7 +5,7 @@ class CalendarLiberator {
     constructor() {
         this.originalView = null;
         this.allEvents = [];
-        this.timezone = 'UTC+0';
+        this.timezone = 'UTC';
         this.currentWeek = 0; // -1, 0, 1, 2 (past, current, next, next)
         this.includeDeclined = false;
         this.includeOOO = false;
@@ -65,7 +65,8 @@ class CalendarLiberator {
 
             // Detect user email BEFORE any navigation (profile dropdown is available now)
             this.userEmail = await this.detectUserEmail();
-            console.log('[CalendarLiberator] User email detection:', this.userEmail ? 'found' : 'not found');
+            console.log('[CalendarLiberator] User email detection:', this.userEmail ? 'found' : 'not found',
+                '| display name:', this.userDisplayName ? 'found' : 'not found');
             
             this.sendProgress('Saving current view...', 5);
             await this.saveCurrentView();
@@ -187,11 +188,12 @@ class CalendarLiberator {
         }
     }
 
-    // Show a transparent overlay that blocks clicks and other page
-    // interactions while the export is running. Synthetic clicks issued by
-    // this content script (view switching, week navigation) are unaffected.
-    // Progress feedback lives in the popup, so the overlay carries no text.
-    // A 60-second safety timeout removes the overlay even if the export hangs.
+    // Show a semi-transparent overlay that blocks clicks and other page
+    // interactions while the export is running, and makes it visually clear
+    // that the page is busy. Synthetic clicks issued by this content script
+    // (view switching, week navigation) are unaffected. Progress feedback
+    // lives in the popup, so the overlay carries no text. A 60-second safety
+    // timeout removes the overlay even if the export hangs.
     showExportOverlay() {
         this.hideExportOverlay();
 
@@ -201,7 +203,7 @@ class CalendarLiberator {
             'position:fixed',
             'inset:0',
             'z-index:2147483647',
-            'background:transparent',
+            'background:rgba(128,128,128,0.25)',
             'cursor:wait'
         ].join(';');
 
@@ -247,7 +249,7 @@ class CalendarLiberator {
                               '';
 
         if (!pageLanguage.toLowerCase().startsWith('en')) {
-            throw new Error(`Language Error: CalendarLiberator requires the Outlook interface to be set to English. Detected language: "${pageLanguage || 'unknown'}". Please change your Outlook language to English in Settings and try again.`);
+            throw new Error(`Language Error: Calendar Liberator requires the Outlook interface to be set to English. Detected language: "${pageLanguage || 'unknown'}". Please change your Outlook language to English in Settings and try again.`);
         }
 
         // Accept either 12-hour or 24-hour time formats. Time parsing will handle AM/PM or 24-hour strings.
@@ -846,20 +848,31 @@ class CalendarLiberator {
         };
 
         // The meControl trigger is always in the DOM and carries the account
-        // display name in its aria-label ("Account manager for John Doe").
-        // Capture it upfront: it needs no click and works as a fallback name.
+        // display name. Classic Outlook: aria-label "Account manager for John Doe".
+        // New Outlook (Monarch): #owa-me-control-container button, whose
+        // aria-label IS the display name ("John Doe"). No click needed either
+        // way — capture it upfront as a fallback name.
         const meTrigger = document.querySelector(
             '#mectrl_main_trigger, ' +
             'button[id^="mectrl"][id$="_trigger"], ' +
+            'button[id*="mectrl"], ' +
+            'button[class*="mectrl"], ' +
+            '#owa-me-control-container button, ' +
             '[aria-label^="Account manager for"]'
         );
         if (meTrigger) {
-            const label = meTrigger.getAttribute('aria-label') || '';
-            const name = label.replace(/^Account manager for\s*/i, '').trim();
+            const label = meTrigger.getAttribute('aria-label') || meTrigger.getAttribute('title') || '';
+            const nameMatch = label.match(/^Account manager for\s*(.+)$/i);
+            const isNewOutlookMeControl = !!meTrigger.closest('#owa-me-control-container');
+            const name = nameMatch
+                ? nameMatch[1].trim()
+                : (isNewOutlookMeControl ? label.trim() : '');
             if (name && !name.includes('@')) {
                 this.userDisplayName = name;
-                console.log('[CalendarLiberator] Display name found in meControl trigger:', name);
+                console.log('[CalendarLiberator] Display name found in meControl trigger:', this.userDisplayName);
             }
+        } else {
+            console.log('[CalendarLiberator] No meControl account trigger found in the DOM');
         }
 
         // Strategy A: #mectrl_currentAccount_secondary already in DOM (dropdown already open)
@@ -899,7 +912,7 @@ class CalendarLiberator {
         // are NOT accessible from here — but the same session data is embedded
         // verbatim in the page's script tags, which we can read from the DOM.
         try {
-            const markerPattern = /"(?:UserEmailAddress|userEmailAddress|smtpAddress|primarySmtpAddress|mail)"\s*:\s*"([^"@\s]+@[^"@\s]+)"/i;
+            const markerPattern = /"(?:UserEmailAddress|userEmailAddress|smtpAddress|primarySmtpAddress|userPrincipalName|UserPrincipalName|emailAddress|EmailAddress|mail)"\s*:\s*"([^"@\s]+@[^"@\s]+)"/;
             for (const script of document.scripts) {
                 const m = (script.textContent || '').match(markerPattern);
                 const email = m && extractEmail(m[1]);
@@ -910,12 +923,17 @@ class CalendarLiberator {
             }
         } catch (e) { /* ignore */ }
 
-        // Strategy E: open the MeControl profile dropdown, read the email, close it
+        // Strategy E: open the profile dropdown, read the email, close it.
+        // The account panel renders only on click, so we snapshot every email
+        // already present in the page (calendar events can show other people's
+        // addresses) and then wait for a NEW one to appear: that is the user's.
         try {
-            // Target the exact meControl trigger first. Avoid generic selectors
-            // like [aria-label*="Profile"]: they can match links (e.g.
-            // "My Microsoft 365 profile") whose click navigates away from the page.
+            // Target the exact meControl triggers (classic Outlook ids and the
+            // new Outlook me-control container). Avoid generic selectors like
+            // [aria-label*="Profile"]: they can match links whose click
+            // navigates away from the page.
             const profileButton = meTrigger || document.querySelector(
+                '#owa-me-control-container button, ' +
                 '#O365_MainLink_MePhoto, ' +
                 'button[id*="mectrl"], ' +
                 'button[class*="mectrl"]'
@@ -923,6 +941,11 @@ class CalendarLiberator {
 
             if (profileButton) {
                 console.log('[CalendarLiberator] Opening profile dropdown to detect email...');
+                const globalEmailPattern = new RegExp(emailPattern.source, 'g');
+                const emailsBeforeClick = new Set(
+                    (document.body.textContent.match(globalEmailPattern) || [])
+                        .map(e => e.toLowerCase())
+                );
                 profileButton.click();
 
                 // Wait up to 2 s for the email to appear, either in
@@ -945,6 +968,19 @@ class CalendarLiberator {
                                 const found = m && extractEmail(decodeURIComponent(m[1]));
                                 if (found) return found;
                             } catch (e) { /* ignore */ }
+                        }
+                        // Scan every meControl element, classic or new Outlook
+                        // (the panel only contains the user's own accounts)
+                        for (const container of document.querySelectorAll('[id*="mectrl"], #owa-me-control-container')) {
+                            const found = extractEmail(container.textContent);
+                            if (found) return found;
+                        }
+                        // Last resort: any email that was NOT in the page before
+                        // the click — rendered by the account panel just opened
+                        const currentEmails = document.body.textContent.match(globalEmailPattern) || [];
+                        for (const candidate of currentEmails) {
+                            const lower = candidate.toLowerCase();
+                            if (!emailsBeforeClick.has(lower)) return lower;
                         }
                         return null;
                     };
@@ -979,10 +1015,12 @@ class CalendarLiberator {
                 }
             }
         } catch (e) {
-            console.warn('[CalendarLiberator] Profile dropdown click strategy failed:', e.message);
+            console.log('[CalendarLiberator] Profile dropdown click strategy failed:', e.message);
         }
 
-        console.warn('[CalendarLiberator] Could not detect user email');
+        // The account email/name only feeds the exported calendar name:
+        // if it is not found, log quietly and never surface it as an error
+        console.log('[CalendarLiberator] Could not detect user email');
         return null;
     }
 

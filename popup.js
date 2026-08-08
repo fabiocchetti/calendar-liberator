@@ -41,28 +41,50 @@ class CalendarLiberatorPopup {
             }
         });
 
+        this.initTimezoneLabels();
         this.detectUserTimezone();
         this.checkOutlookPage();
     }
 
+    // Append the current UTC offset to each option label, e.g.
+    // "Europe/Rome (UTC+2)" — computed live, so it always reflects DST.
+    initTimezoneLabels() {
+        for (const option of this.timezoneSelect.options) {
+            option.textContent = `${option.value} (${this.getUtcOffsetLabel(option.value)})`;
+        }
+    }
+
+    getUtcOffsetLabel(zone) {
+        try {
+            const parts = new Intl.DateTimeFormat('en-US', {
+                timeZone: zone,
+                timeZoneName: 'shortOffset'
+            }).formatToParts(new Date());
+            const tzPart = parts.find(part => part.type === 'timeZoneName');
+            return tzPart ? tzPart.value.replace('GMT', 'UTC') : 'UTC';
+        } catch (error) {
+            return 'UTC';
+        }
+    }
+
     detectUserTimezone() {
         try {
-            // Get browser's timezone offset in hours
-            const offset = new Date().getTimezoneOffset();
-            const utcOffset = -offset / 60; // Convert to hours (negative because getTimezoneOffset is reversed)
+            // The browser reports a full IANA zone (e.g. "Europe/London"),
+            // which carries the correct DST rules — unlike a bare UTC offset.
+            const zone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+            if (!zone) return;
 
-            // Build UTC string (e.g., "UTC+1", "UTC-5")
-            const roundedOffset = Math.round(utcOffset);
-            const utcString = roundedOffset >= 0 ? `UTC+${roundedOffset}` : `UTC${roundedOffset}`;
+            let matchingOption = Array.from(this.timezoneSelect.options)
+                .find(option => option.value === zone);
 
-            const matchingOption = Array.from(this.timezoneSelect.options)
-                .find(option => option.value === utcString);
-
-            if (matchingOption) {
-                matchingOption.selected = true;
+            if (!matchingOption) {
+                // Zone not in the curated list: add it so detection always works
+                matchingOption = new Option(`${zone} (${this.getUtcOffsetLabel(zone)})`, zone);
+                this.timezoneSelect.add(matchingOption);
             }
+            matchingOption.selected = true;
         } catch (error) {
-            // Fail silently: keep the UTC+0 default
+            // Fail silently: keep the default
         }
     }
 

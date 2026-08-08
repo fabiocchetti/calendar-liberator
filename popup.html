@@ -21,32 +21,34 @@
 
         <div class="field">
             <label for="timezone">Timezone</label>
+            <!-- Values are real IANA zones: a bare "UTC+1" is ambiguous with
+                 respect to DST. Labels get the current offset appended by popup.js. -->
             <select id="timezone">
-                <option value="UTC-12">UTC-12</option>
-                <option value="UTC-11">UTC-11</option>
-                <option value="UTC-10">UTC-10 · Pacific/Honolulu</option>
-                <option value="UTC-9">UTC-9 · America/Anchorage</option>
-                <option value="UTC-8">UTC-8 · America/Los_Angeles</option>
-                <option value="UTC-7">UTC-7 · America/Denver</option>
-                <option value="UTC-6">UTC-6 · America/Chicago</option>
-                <option value="UTC-5">UTC-5 · America/New_York</option>
-                <option value="UTC-4">UTC-4 · America/Halifax</option>
-                <option value="UTC-3">UTC-3 · America/Buenos_Aires</option>
-                <option value="UTC-2">UTC-2</option>
-                <option value="UTC-1">UTC-1 · Atlantic/Azores</option>
-                <option value="UTC+0" selected>UTC+0 · Europe/London</option>
-                <option value="UTC+1">UTC+1 · Europe/Rome</option>
-                <option value="UTC+2">UTC+2 · Europe/Helsinki</option>
-                <option value="UTC+3">UTC+3 · Europe/Moscow</option>
-                <option value="UTC+4">UTC+4 · Asia/Dubai</option>
-                <option value="UTC+5">UTC+5 · Asia/Karachi</option>
-                <option value="UTC+6">UTC+6 · Asia/Dhaka</option>
-                <option value="UTC+7">UTC+7 · Asia/Bangkok</option>
-                <option value="UTC+8">UTC+8 · Asia/Singapore</option>
-                <option value="UTC+9">UTC+9 · Asia/Tokyo</option>
-                <option value="UTC+10">UTC+10 · Australia/Sydney</option>
-                <option value="UTC+11">UTC+11 · Pacific/Noumea</option>
-                <option value="UTC+12">UTC+12 · Pacific/Auckland</option>
+                <option value="Etc/GMT+12">Etc/GMT+12</option>
+                <option value="Etc/GMT+11">Etc/GMT+11</option>
+                <option value="Pacific/Honolulu">Pacific/Honolulu</option>
+                <option value="America/Anchorage">America/Anchorage</option>
+                <option value="America/Los_Angeles">America/Los_Angeles</option>
+                <option value="America/Denver">America/Denver</option>
+                <option value="America/Chicago">America/Chicago</option>
+                <option value="America/New_York">America/New_York</option>
+                <option value="America/Halifax">America/Halifax</option>
+                <option value="America/Argentina/Buenos_Aires">America/Argentina/Buenos_Aires</option>
+                <option value="Etc/GMT+2">Etc/GMT+2</option>
+                <option value="Atlantic/Azores">Atlantic/Azores</option>
+                <option value="Europe/London" selected>Europe/London</option>
+                <option value="Europe/Rome">Europe/Rome</option>
+                <option value="Europe/Helsinki">Europe/Helsinki</option>
+                <option value="Europe/Moscow">Europe/Moscow</option>
+                <option value="Asia/Dubai">Asia/Dubai</option>
+                <option value="Asia/Karachi">Asia/Karachi</option>
+                <option value="Asia/Dhaka">Asia/Dhaka</option>
+                <option value="Asia/Bangkok">Asia/Bangkok</option>
+                <option value="Asia/Singapore">Asia/Singapore</option>
+                <option value="Asia/Tokyo">Asia/Tokyo</option>
+                <option value="Australia/Sydney">Australia/Sydney</option>
+                <option value="Pacific/Noumea">Pacific/Noumea</option>
+                <option value="Pacific/Auckland">Pacific/Auckland</option>
             </select>
         </div>
 
