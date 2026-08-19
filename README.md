@@ -1,11 +1,6 @@
-<p align="center">
-  <img src="assets/brand/logo-full.png" alt="Calendar Liberator" width="440">
-</p>
+<img src="assets/brand/logo-full.png" alt="Calendar Liberator" width="440">
 
-<p align="center">
-  <strong>Export your Outlook calendar to ICS format in seconds.<br>
-  Works with any Outlook or Office 365 web domain.</strong>
-</p>
+**Export your Outlook calendar to ICS format in seconds. Works with any Outlook or Office 365 web domain.**
 
 A browser extension that liberates your work calendar by scraping visible events and exporting them to standard ICS format—perfect for importing into iOS Calendar, Google Calendar, or any calendar application.
 
