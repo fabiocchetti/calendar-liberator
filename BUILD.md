@@ -80,6 +80,82 @@ Test a full export on a real Outlook calendar in each browser before submitting.
 3. Upload to each store with a changelog
 4. Users auto-update within 24–48 hours
 
-## Store Listing Assets
+## Store Listing Content
 
-See `ASSETS_NEEDED.md` for the checklist of screenshots and listing content.
+### Short Description (132 characters max for Chrome)
+```
+Export your Outlook calendar to ICS format. One-click export with timezone selection. Works with all Outlook/Office 365 domains.
+```
+
+### Detailed Description
+
+```markdown
+Calendar Liberator exports your Outlook calendar to standard ICS format in seconds.
+
+✨ KEY FEATURES
+• One-click export with simple popup interface
+• Auto-detects your timezone (customizable)
+• Filter declined and out-of-office events
+• Exports a 28-day window (7 days back + 21 days forward)
+• Works with all Outlook and Office 365 domains
+• 100% private — all processing happens locally
+• No data transmission or cloud storage
+
+🚀 HOW IT WORKS
+1. Click the extension icon on any Outlook calendar page
+2. Select your timezone (auto-detected)
+3. Choose export options (include/exclude declined, OOO)
+4. Click "Export to ICS"
+5. Import the file into any calendar app
+
+🔒 PRIVACY & SECURITY
+• Zero data collection
+• No external servers or analytics
+• Minimal permissions (activeTab only)
+• Open source for full transparency
+
+📱 WORKS WITH
+• iOS Calendar
+• Google Calendar
+• Microsoft Calendar
+• Any calendar application supporting ICS import
+
+Perfect for:
+✓ Backing up work calendars
+✓ Syncing to personal devices
+✓ Importing to non-corporate calendar apps
+✓ Creating offline calendar archives
+```
+
+### Category
+Productivity (all three stores)
+
+### Tags/Keywords
+```
+outlook, calendar, export, ics, office 365, calendar backup, calendar sync, productivity
+```
+
+### Screenshots
+
+Ready in `assets/screenshots/` (masters in `assets/screenshots/masters/`):
+- **Chrome + Firefox:** use the `1280x800/` files (Chrome requires exactly 1280x800 or 640x400; Firefox accepts any size)
+- **Edge:** use the `1366x768/` files
+
+Upload them in filename order: 1 = Outlook calendar (context), 2 = popup, 3 = export in progress, 4 = imported result.
+
+### Optional Promotional Images
+- **Chrome:** small tile 440x280 (search results), marquee 1400x560 (featured)
+- **Edge:** store icon 300x300 (export from `assets/icon-master.svg`)
+- **Firefox:** none
+
+### Privacy Practices (Chrome tab)
+- Privacy policy URL: https://visiomultimedia.com/en/extensions-privacy-policy/#calendar-liberator
+- Declare that no data is collected and justify the host permissions (see `PRIVACY.md`)
+
+## Review Times & Submission Order
+
+- **Firefox Add-ons:** 1–7 days (automated review possible for simple extensions)
+- **Edge Add-ons:** 1–3 business days
+- **Chrome Web Store:** 1–3 business days (sometimes up to 7 days)
+
+Recommended order: Firefox → Edge → Chrome.

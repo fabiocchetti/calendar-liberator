@@ -129,7 +129,7 @@ Each package includes a browser-specific README with tailored installation instr
 - Filters: declined and out-of-office events excluded by default (user-configurable)
 
 ### Timezone Handling
-- You select the UTC offset matching the timezone displayed in Outlook
+- You pick the IANA timezone (e.g. Europe/Rome) matching the timezone displayed in Outlook — auto-detected from your browser by default
 - Each event time is converted to UTC using the browser's timezone database, applying the correct DST rule for each event's own date
 - Events import at the right local time in any calendar app — no manual conversion needed
 - All-day events are exported as floating dates (no timezone shift)
@@ -140,7 +140,6 @@ Each package includes a browser-specific README with tailored installation instr
 
 - **English Only:** Currently requires Outlook interface to be in English
 - **28-Day Window:** Exports limited to exactly 28 days (7 days back + 21 forward, not entire calendar history)
-- **Whole-Hour Timezones:** Only whole-hour UTC offsets are supported; half-hour timezones (e.g. UTC+5:30, UTC+9:30) will export times shifted by 30 minutes
 - **Manual Re-Import:** The exported ICS is a static snapshot — subscribed devices do not auto-update (see Roadmap)
 - **Read-Only:** Cannot modify Outlook calendar, only read/export
 - **No Authentication:** Relies on user's existing Outlook session
