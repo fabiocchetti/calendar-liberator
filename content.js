@@ -16,7 +16,6 @@ class CalendarLiberator {
     }
 
     init() {
-        // Listen for messages from popup
         chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             this.handleMessage(message, sendResponse);
             // Return true to keep the message port open for the async sendResponse
@@ -55,12 +54,10 @@ class CalendarLiberator {
 
     async exportCalendar() {
         try {
-            // Validate we're on an Outlook page
             if (!this.validateOutlookPage()) {
                 throw new Error('This extension only works on Outlook calendar pages');
             }
 
-            // Block user interactions with the page while scraping is in progress
             this.showExportOverlay();
 
             // Detect user email BEFORE any navigation (profile dropdown is available now)
@@ -77,7 +74,6 @@ class CalendarLiberator {
             this.sendProgress('Navigating to current week...', 15);
             await this.navigateToToday();
             
-            // Reset events collection
             this.allEvents = [];
             
             // Calculate exact date range: 7 days back from today + today + 21 days forward = 28 days total
@@ -100,7 +96,6 @@ class CalendarLiberator {
                 { name: 'second next week', offset: 2, progress: [60, 75] }
             ];
             
-            // Go back one week first
             this.sendProgress('Going back one week...', 20);
             await this.navigatePreviousWeek();
             this.currentWeek = -1;
@@ -110,7 +105,6 @@ class CalendarLiberator {
                     this.sendProgress(`Collecting events from ${task.name}...`, task.progress[0]);
                     
                     if (task.offset > this.currentWeek) {
-                        // Move forward to reach target week
                         while (this.currentWeek < task.offset) {
                             await this.navigateNextWeek();
                             this.currentWeek++;
@@ -123,11 +117,9 @@ class CalendarLiberator {
                     
                 } catch (error) {
                     console.warn(`[CalendarLiberator] Error collecting ${task.name}:`, error.message);
-                    // Continue with other weeks
                 }
             }
             
-            // Filter events to exact 28-day window (7 days back + 21 days forward from today)
             const originalCount = this.allEvents.length;
             this.allEvents = this.allEvents.filter(event => {
                 const eventDate = this.parseEventDate(event);
@@ -153,7 +145,6 @@ class CalendarLiberator {
             
             this.sendProgress('Restoring original view...', 95);
             await this.restoreOriginalView();
-            // Ensure the calendar is showing today's date after restore
             try {
                 await this.navigateToToday();
             } catch (err) {
@@ -243,7 +234,6 @@ class CalendarLiberator {
             return false;
         }
         
-        // Enforce strict language requirement: must be English locale
         const pageLanguage = document.documentElement.lang ||
                               document.querySelector('html')?.getAttribute('lang') ||
                               '';
@@ -252,8 +242,6 @@ class CalendarLiberator {
             throw new Error(`Language Error: Calendar Liberator requires the Outlook interface to be set to English. Detected language: "${pageLanguage || 'unknown'}". Please change your Outlook language to English in Settings and try again.`);
         }
 
-        // Accept either 12-hour or 24-hour time formats. Time parsing will handle AM/PM or 24-hour strings.
-        
         console.log('CalendarLiberator: Validation passed - Compatible Outlook interface detected');
         return true;
     }
@@ -267,7 +255,6 @@ class CalendarLiberator {
     }
 
     async saveCurrentView() {
-        // Find currently active view button
         const viewButtons = document.querySelectorAll('button[aria-pressed]');
         
         for (const button of viewButtons) {
@@ -297,7 +284,6 @@ class CalendarLiberator {
     }
 
     async switchToWeeklyView() {
-        // Find week view button using multiple selectors for robustness
         const weekButton = this.findWeekButton();
         
         if (!weekButton) {
@@ -468,16 +454,12 @@ class CalendarLiberator {
 
     async collectCurrentWeekEvents() {
         try {
-            // Wait for calendar to load
             await this.waitForCalendarLoad();
             
-            // Get current date range for context
             const dateRange = this.getCurrentDateRange();
             
-            // Extract all events from current view
             const weekEvents = this.extractEventsFromCurrentView();
             
-            // Add to total collection with deduplication
             for (const event of weekEvents) {
                 if (!this.isDuplicateEvent(event)) {
                     this.allEvents.push(event);
@@ -521,7 +503,6 @@ class CalendarLiberator {
         const events = [];
         
         try {
-            // Find all event elements with multiple selectors
             const eventSelectors = [
                 '[data-calitemid]',
                 '[class*="calendar-event"]',
@@ -539,7 +520,6 @@ class CalendarLiberator {
                 }
             }
             
-            // Remove duplicates
             eventElements = [...new Set(eventElements)];
             
             for (const eventEl of eventElements) {
@@ -636,11 +616,9 @@ class CalendarLiberator {
             return null;
         }
         
-        // Parse aria-label for comprehensive event data
     let eventData = this.parseEventFromAriaLabel(ariaLabel);
         // If we couldn't parse a structured aria-label, build a fallback event data
         if (!eventData) {
-            // Try to recover a title from the button title attribute, aria-label, or element text
             const raw = (title || ariaLabel || (eventElement.textContent || '')).trim();
             let recovered = raw.split('\n')[0].trim();
             if (recovered.includes(', ')) {
@@ -674,7 +652,6 @@ class CalendarLiberator {
             }
         }
         
-        // Enhance with additional details from title
         if (title) {
             const titleLines = title.split('\n').map(line => line.trim()).filter(line => line);
             if (titleLines.length > 1) {
@@ -682,7 +659,6 @@ class CalendarLiberator {
             }
         }
         
-        // Extract recurrence information
         const recurrenceIcon = eventElement.querySelector('[data-icon-name*="ArrowRepeat"]');
         if (recurrenceIcon) {
             const recurrenceLabel = recurrenceIcon.getAttribute('aria-label') || '';
@@ -690,11 +666,9 @@ class CalendarLiberator {
             eventData.recurrenceType = recurrenceLabel.includes('modified') ? 'exception' : 'recurring';
         }
         
-        // Extract organizer and additional details
         const organizerElement = eventElement.querySelector('.Cns89, .ErL8v');
         if (organizerElement) {
             const organizerText = organizerElement.textContent.trim();
-            // Only set organizer if it's valid and not empty/null
             if (!eventData.organizer && organizerText && 
                 organizerText.toLowerCase() !== 'null' && 
                 organizerText !== '(null)') {
@@ -702,7 +676,6 @@ class CalendarLiberator {
             }
         }
 
-        // Attach stable calendar item ID
         const calNode = eventElement.closest('[data-calitemid]') || eventElement;
         const calItemId = calNode?.getAttribute?.('data-calitemid') || calNode?.dataset?.calitemid;
         if (calItemId) eventData.calItemId = calItemId;
@@ -719,7 +692,6 @@ class CalendarLiberator {
         const parts = ariaLabel.split(', ');
         if (parts.length < 3) return null;
         
-        // Extract title
         let title = parts[0].trim();
         
         const eventData = {
@@ -780,7 +752,6 @@ class CalendarLiberator {
         const organizerMatch = ariaLabel.match(organizerPattern);
         if (organizerMatch) {
             const organizer = organizerMatch[1].trim();
-            // Only set if it's a valid name (not null, not empty, and doesn't contain "null")
             if (organizer && 
                 organizer.toLowerCase() !== 'null' && 
                 organizer !== '(null)' &&
@@ -789,7 +760,6 @@ class CalendarLiberator {
             }
         }
         
-        // Parse status
         if (ariaLabel.includes('Busy')) eventData.status = 'BUSY';
         else if (ariaLabel.includes('Tentative')) eventData.status = 'TENTATIVE';
         else if (ariaLabel.includes('Free')) eventData.status = 'FREE';
@@ -799,21 +769,17 @@ class CalendarLiberator {
     }
 
     parseEventDate(event) {
-        // Parse event date from the event object for filtering
-        // Events should have date/time info in their structure
         try {
             if (event.date) {
                 const date = new Date(event.date);
                 if (!isNaN(date.getTime())) return date;
             }
             
-            // Try to parse from startTime if available
             if (event.startTime) {
                 const date = new Date(event.startTime);
                 if (!isNaN(date.getTime())) return date;
             }
             
-            // For all-day events or events with just a date string
             if (event.dateStr) {
                 const date = new Date(event.dateStr);
                 if (!isNaN(date.getTime())) return date;
@@ -827,7 +793,6 @@ class CalendarLiberator {
     }
 
     generateICS() {
-        // Load ICS generator if not already loaded
         if (typeof ICSGenerator === 'undefined') {
             throw new Error('ICS Generator not loaded');
         }
@@ -1047,13 +1012,11 @@ class CalendarLiberator {
     async restoreOriginalView() {
         if (this.originalView && this.originalView.element) {
             try {
-                // Check if the element still exists
                 if (document.contains(this.originalView.element)) {
                     this.originalView.element.click();
                     await this.waitForViewChange();
                     console.log('Successfully restored original view');
                 } else {
-                    // Try to find the view button by label
                     const viewButtons = document.querySelectorAll('button[aria-pressed]');
                     for (const button of viewButtons) {
                         if (button.getAttribute('aria-label') === this.originalView.label) {
@@ -1090,5 +1053,4 @@ class CalendarLiberator {
     }
 }
 
-// Initialize the content script
 const calendarLiberator = new CalendarLiberator();

@@ -20,7 +20,6 @@ class CalendarLiberatorPopup {
     init() {
         this.exportButton.addEventListener('click', () => this.startExport());
 
-        // The empty-state link opens Outlook in a new tab
         this.openOutlookLink.addEventListener('click', (event) => {
             event.preventDefault();
             chrome.tabs.create({ url: 'https://outlook.office.com/calendar' });
@@ -115,7 +114,6 @@ class CalendarLiberatorPopup {
             return;
         }
 
-        // On Outlook: check that the content script is ready
         chrome.tabs.sendMessage(tab.id, { action: 'ping' }, () => {
             if (chrome.runtime.lastError) {
                 // Real error: the page must be refreshed to inject the script
@@ -165,7 +163,6 @@ class CalendarLiberatorPopup {
                 }
 
                 if (response && response.success) {
-                    // The event count lives in the button
                     const count = response.eventCount;
                     const label = count === 1 ? '1 event' : `${count} events`;
                     this.setButtonLabel(`Export .ics — ${label}`);
@@ -196,7 +193,6 @@ class CalendarLiberatorPopup {
     }
 }
 
-// Initialize popup when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
     new CalendarLiberatorPopup();
 });

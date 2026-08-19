@@ -7,7 +7,6 @@ set -e
 
 echo "Building CalendarLiberator extension packages..."
 
-# Create build directory
 BUILD_DIR="build"
 DIST_DIR="dist"
 VERSION=$(grep '"version"' manifest.json | sed 's/.*"version": "\(.*\)".*/\1/')
@@ -17,7 +16,6 @@ mkdir -p "$BUILD_DIR" "$DIST_DIR"
 
 echo "Version: $VERSION"
 
-# Function to generate browser-specific README
 generate_readme() {
     local browser=$1
     local store_name=$2
@@ -69,7 +67,6 @@ FIREFOX_INSTALL="1. Download the extension from Firefox Add-ons
 
 Note: Temporary add-ons are removed when Firefox restarts. For permanent installation, install from Firefox Add-ons store."
 
-# Files to include in package
 FILES=(
     "manifest.json"
     "popup.html"
@@ -113,7 +110,11 @@ add_firefox_settings() {
         manifest.browser_specific_settings = {
             gecko: {
                 id: 'calendar-liberator@fabiocchetti.dev',
-                strict_min_version: '109.0'
+                strict_min_version: '109.0',
+                // AMO requires this declaration for new submissions; the extension collects no data
+                data_collection_permissions: {
+                    required: ['none']
+                }
             }
         };
         manifest.icons['96'] = 'icons/icon-96.png';
@@ -122,7 +123,6 @@ add_firefox_settings() {
     "
 }
 
-# Chrome package
 echo "Creating Chrome package..."
 copy_files
 remove_non_firefox_icons
@@ -133,7 +133,6 @@ cd ..
 echo "  Created dist/calendar-liberator-chrome-$VERSION.zip"
 rm -rf "$BUILD_DIR"/*
 
-# Edge package
 echo "Creating Edge package..."
 copy_files
 remove_non_firefox_icons
@@ -144,7 +143,6 @@ cd ..
 echo "  Created dist/calendar-liberator-edge-$VERSION.zip"
 rm -rf "$BUILD_DIR"/*
 
-# Firefox package
 echo "Creating Firefox package..."
 copy_files
 add_firefox_settings
@@ -154,7 +152,6 @@ zip -r "../$DIST_DIR/calendar-liberator-firefox-$VERSION.zip" . -x "*.DS_Store"
 cd ..
 echo "  Created dist/calendar-liberator-firefox-$VERSION.zip"
 
-# Cleanup
 rm -rf "$BUILD_DIR"
 
 echo ""

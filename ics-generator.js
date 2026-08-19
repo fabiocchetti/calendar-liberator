@@ -5,9 +5,6 @@
 // that matches the times DISPLAYED in Outlook, auto-detected from the browser.
 // A real zone carries its own DST rules, so every event time is converted to
 // UTC via the browser's Intl API with the correct offset for its own date.
-// (A bare "UTC+1" offset is ambiguous — Rome and London can both be UTC+1
-// depending on the season — and mapping it to a representative zone caused
-// one-hour shifts for users in a different zone with the same offset.)
 
 class ICSGenerator {
     constructor(timezone = 'UTC', userEmail = null, calendarName = null) {
@@ -35,7 +32,6 @@ class ICSGenerator {
             `X-WR-TIMEZONE:${this.getIANATimezone()}`
         ];
 
-        // Add events
         for (const event of events) {
             lines.push(...this.generateEventLines(event));
         }
@@ -48,24 +44,19 @@ class ICSGenerator {
     generateEventLines(event) {
         const lines = ['BEGIN:VEVENT'];
         
-        // Generate unique ID
         const uid = this.generateUID(event);
         lines.push(`UID:${uid}`);
         
-        // Add created and modified timestamps (absolute UTC)
         const now = this.formatDateTimeUTC(new Date());
         lines.push(`DTSTAMP:${now}`);
         lines.push(`CREATED:${now}`);
         lines.push(`LAST-MODIFIED:${now}`);
         
-        // Add event title
         lines.push(`SUMMARY:${this.escapeText(event.title)}`);
         
-        // Add event times
         if (event.allDay) {
             const dateOnly = this.parseDate(event.date);
             if (dateOnly) {
-                // Check if this event has an explicit end date from the parsing
                 let endDate = dateOnly;
                 if (event.endDate) {
                     endDate = this.parseDate(event.endDate);
@@ -87,7 +78,6 @@ class ICSGenerator {
             const end = this.parseTimeComponents(event.endTime);
             
             if (day && start && end) {
-                // Convert the displayed wall-clock times to absolute UTC instants
                 const startUTC = this.wallTimeToUTC(day, start.hours, start.minutes);
                 const endUTC = this.wallTimeToUTC(day, end.hours, end.minutes);
                 lines.push(`DTSTART:${this.formatDateTimeUTC(startUTC)}`);
@@ -95,8 +85,7 @@ class ICSGenerator {
             }
         }
         
-        // Add organizer (only if valid and not "null" string)
-        // Also filter out suspicious single-word names that might be incomplete
+        // Add organizer only if it looks like a real full name (filters "null" and single-word fragments)
         if (event.organizer && 
             event.organizer !== 'null' && 
             event.organizer.toLowerCase() !== 'null' &&
@@ -106,15 +95,12 @@ class ICSGenerator {
             lines.push(`ORGANIZER:CN=${this.escapeText(event.organizer)}`);
         }
         
-        // Add location
         if (event.location) {
             lines.push(`LOCATION:${this.escapeText(event.location)}`);
         }
         
-        // Add status
         if (event.status) {
             lines.push(`STATUS:${event.status}`);
-            // Map Outlook status to standard
             if (event.status === 'BUSY') {
                 lines.push(`TRANSP:OPAQUE`);
             } else if (event.status === 'FREE') {
@@ -125,7 +111,6 @@ class ICSGenerator {
             }
         }
         
-        // Add recurrence information
         if (event.isRecurring) {
             if (event.recurrenceType === 'exception') {
                 lines.push(`DESCRIPTION:${this.escapeText('Recurring event (modified)')}`);
@@ -136,7 +121,6 @@ class ICSGenerator {
             }
         }
         
-        // Add categories
         lines.push(`CATEGORIES:Outlook Import`);
         
         lines.push('END:VEVENT');
@@ -198,7 +182,6 @@ class ICSGenerator {
             let hours = null;
             let minutes = 0;
 
-            // Try AM/PM first
             const ampmMatch = timeString.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i);
             if (ampmMatch) {
                 hours = parseInt(ampmMatch[1], 10);
@@ -207,7 +190,6 @@ class ICSGenerator {
                 if (ampm === 'PM' && hours !== 12) hours += 12;
                 if (ampm === 'AM' && hours === 12) hours = 0;
             } else {
-                // Try 24-hour format
                 const hhmmMatch = timeString.match(/(\d{1,2}):(\d{2})/);
                 if (hhmmMatch) {
                     hours = parseInt(hhmmMatch[1], 10);
@@ -289,7 +271,6 @@ class ICSGenerator {
     generateUID(event) {
         // Prefer stable calendar item id (if provided by Outlook) so repeated exports can be re-imported without duplicates
         if (event.calItemId) {
-            // sanitize calItemId to safe UID characters
             const safeId = event.calItemId.replace(/[^A-Za-z0-9\-_.@]/g, '');
             return `cal-liberator-${safeId}@outlook.com`;
         }

@@ -223,7 +223,7 @@ calendar-liberator/
 ├── ics-generator.js       # ICS file generation
 ├── icon-*.png             # Extension icons
 ├── fonts/                 # Space Grotesk 600 (wordmark, bundled locally)
-├── assets/                # SVG icon masters (design reference)
+├── assets/                # SVG icon sources (design reference)
 ├── test/                  # ICS generator tests
 ├── LICENSE                # MIT License
 ├── PRIVACY.md             # Privacy policy

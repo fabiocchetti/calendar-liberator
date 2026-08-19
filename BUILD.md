@@ -39,7 +39,7 @@ unzip -p dist/calendar-liberator-firefox-*.zip manifest.json
 ## Icons
 
 The packaged icons (`icon-*.png` at the project root) are final assets — do
-not modify them. The SVG masters live in `assets/` in case new sizes are ever
+not modify them. The SVG sources live in `assets/` in case new sizes are ever
 needed (e.g. the 300x300 Edge store icon).
 
 ## Testing Before Publishing
@@ -82,75 +82,204 @@ Test a full export on a real Outlook calendar in each browser before submitting.
 
 ## Store Listing Content
 
-### Short Description (132 characters max for Chrome)
+Copy-paste blocks for the three stores. Character limits are noted where the
+store enforces one. Keep the wording consistent across stores — reviewers and
+users compare them.
+
+### Extension Name
+
+Do **not** put "Outlook" or "Microsoft" first in the name: all three stores
+reject names that imply affiliation with the trademark owner. The current form
+is safe because the brand name leads and Outlook appears only as a
+compatibility statement.
+
+**Chrome (75 characters max)** — 51 characters:
 ```
-Export your Outlook calendar to ICS format. One-click export with timezone selection. Works with all Outlook/Office 365 domains.
+Calendar Liberator — Export Outlook Calendar to ICS
 ```
+
+**Edge and Firefox (50 characters max)** — 44 characters:
+```
+Calendar Liberator — Outlook Calendar to ICS
+```
+
+### Short Description / Summary
+
+**Chrome Web Store — 132 characters max**
+```
+Export your Outlook Web calendar to an .ics file and import it into Google, Apple or any calendar app. Local, private, no sign-in.
+```
+(130 characters)
+
+**Microsoft Edge Add-ons — 200 characters max**
+```
+Export your Outlook Web calendar to a standard .ics file in one click, then import it into Google Calendar, Apple Calendar or any calendar app. Runs entirely in your browser — no sign-in, no servers.
+```
+(199 characters)
+
+**Firefox Add-ons — 250 characters max**
+```
+Sync your work calendar without enrolling your phone. Calendar Liberator exports the events shown in Outlook on the web to a standard .ics file you can import into Google Calendar, Apple Calendar or any calendar app. No sign-in, no tracking.
+```
+(241 characters)
 
 ### Detailed Description
 
-```markdown
-Calendar Liberator exports your Outlook calendar to standard ICS format in seconds.
+Same text for all three stores. Chrome and Edge render plain text only (the
+bullets below are literal characters, not markup); Firefox accepts a limited
+set of HTML tags, so `<b>`/`<ul>` can be added there if desired.
 
-✨ KEY FEATURES
-• One-click export with simple popup interface
-• Auto-detects your timezone (customizable)
-• Filter declined and out-of-office events
-• Exports a 28-day window (7 days back + 21 days forward)
-• Works with all Outlook and Office 365 domains
-• 100% private — all processing happens locally
-• No data transmission or cloud storage
+```
+Calendar Liberator exports the events from your Outlook Web calendar into a standard .ics (iCalendar) file, so you can import your work schedule into Google Calendar, Apple Calendar, Fastmail, Proton Calendar, Thunderbird or any app that reads calendar files — and finally see work and personal life side by side.
 
-🚀 HOW IT WORKS
-1. Click the extension icon on any Outlook calendar page
-2. Select your timezone (auto-detected)
-3. Choose export options (include/exclude declined, OOO)
-4. Click "Export to ICS"
-5. Import the file into any calendar app
+WHY THIS EXISTS
 
-🔒 PRIVACY & SECURITY
-• Zero data collection
-• No external servers or analytics
-• Minimal permissions (activeTab only)
-• Open source for full transparency
+Many companies will only sync your work calendar to your phone if you enrol the device in their mobile device management (Intune/MDM), which means handing over a degree of control of a personal device and granting access to your entire Microsoft account. If you would rather not do that, the usual alternatives are retyping every meeting by hand, or going without.
 
-📱 WORKS WITH
-• iOS Calendar
-• Google Calendar
-• Microsoft Calendar
-• Any calendar application supporting ICS import
+Calendar Liberator takes a third road. It asks for no password, connects to no Microsoft API, registers no OAuth application, and runs no server. It reads the calendar you are already looking at, in the browser session you have already signed into, and writes it to a file on your own disk. Nothing leaves your computer.
 
-Perfect for:
-✓ Backing up work calendars
-✓ Syncing to personal devices
-✓ Importing to non-corporate calendar apps
-✓ Creating offline calendar archives
+HOW IT WORKS
+
+1. Open your calendar in Outlook on the web and sign in as you normally would.
+2. Click the Calendar Liberator icon in the toolbar.
+3. Check the calendar name and timezone (both auto-detected) and decide whether to include declined and out-of-office events.
+4. Click "Export .ics".
+5. The extension walks through a 28-day window — 7 days back and 21 days ahead — in week view, collects the events it can see, then restores your original view and returns to today.
+6. Import the downloaded .ics file into whichever calendar app you use.
+
+WHAT GETS EXPORTED
+
+• Event title
+• Date, start time and end time
+• All-day and multi-day events
+• Organiser name and the location or room shown on the event, when Outlook displays them
+• Busy / free / tentative status
+• A note marking recurring instances
+
+And nothing else. No attendee lists, no invitation bodies or meeting notes, no attachments, no email addresses, no message content. The extension only ever reads the calendar grid — it never touches your mailbox, your files or your contacts.
+
+PRIVACY BY DESIGN
+
+• No data collection of any kind
+• No external network requests: no backend, no analytics, no telemetry, no ads
+• No accounts, no credentials, no OAuth tokens
+• Nothing is written to storage — the events exist only in memory during the export, then become the file you download
+• Permissions limited to activeTab plus host access to Outlook and Office 365 domains. The extension cannot see any other website
+• Fully open source under the MIT licence, so every claim above can be verified line by line
+
+TIMEZONES DONE PROPERLY
+
+You pick the IANA timezone that matches the times shown in Outlook — your browser's zone is preselected. Each event is converted using the correct daylight-saving offset for its own date, so meetings land at the right hour even when the export spans a clock change. All-day events are exported as floating dates and never shift.
+
+WORKS WITH
+
+• outlook.office.com and outlook.office365.com
+• outlook.com and Microsoft 365 tenants on office.com
+• Corporate MCAS / Defender for Cloud Apps proxy domains
+• Chrome, Edge, Firefox, Brave, Opera and other Chromium browsers
+
+IMPORT IT ANYWHERE
+
+• Google Calendar — Settings, then Import & export
+• Apple Calendar and iCloud — File, then Import
+• Thunderbird, Fastmail, Proton Calendar, Zoho, and any other iCalendar-compatible app
+
+PERFECT FOR
+
+• Seeing work meetings next to personal appointments on your own phone
+• Keeping a personal device free of corporate device management
+• Contractors and consultants juggling more than one organisation's calendar
+• Sharing your availability without sharing your mailbox
+• Keeping an offline snapshot or backup of your schedule
+
+GOOD TO KNOW
+
+• The Outlook interface must be set to English.
+• The export covers 28 days (7 back, 21 ahead), not your whole calendar history.
+• The .ics is a snapshot, not a live subscription: run the export again whenever you want fresh data. Advanced users can host the file themselves for automatic refresh — the GitHub README explains how.
+• The extension reads Outlook's web interface, so a major redesign by Microsoft can break it until an update ships.
+• It is read-only. It can never create, edit or delete anything in your Outlook calendar.
+• Always check the imported result before relying on it for something important.
+
+OPEN SOURCE
+
+Source code, issue tracker and roadmap: https://github.com/fabiocchetti/calendar-liberator
+Privacy policy: https://visiomultimedia.com/en/extensions-privacy-policy/#calendar-liberator
+
+Calendar Liberator is an independent project. It is not affiliated with, endorsed by, or sponsored by Microsoft. Outlook, Office 365 and Microsoft 365 are trademarks of Microsoft Corporation; Google Calendar is a trademark of Google LLC; Apple Calendar is a trademark of Apple Inc.
 ```
 
 ### Category
-Productivity (all three stores)
 
-### Tags/Keywords
+Productivity (all three stores). Firefox secondary tags: "Tabs" is wrong here —
+leave only Productivity.
+
+### Tags / Keywords
+
+Edge and Firefox accept keyword fields; Chrome does not (it indexes the
+description, and keyword stuffing is a policy violation there).
+
 ```
-outlook, calendar, export, ics, office 365, calendar backup, calendar sync, productivity
+outlook calendar export, ics export, icalendar, calendar sync, outlook to google calendar, outlook to apple calendar, office 365 calendar, work calendar, calendar backup, no mdm
+```
+
+### Permission Justifications
+
+Chrome and Edge both ask for a per-permission rationale. Firefox asks for the
+same information in "Notes for reviewers".
+
+**activeTab**
+```
+Used only after the user clicks the extension icon and presses Export. It lets the extension read the calendar rendered in the tab the user is currently viewing, in order to build the .ics file. No other tab is accessed.
+```
+
+**Host permissions (Outlook / Office 365 domains)**
+```
+The content script that reads the calendar grid must be injected into the Outlook Web page itself. Outlook is served from several domains depending on the tenant (outlook.office.com, outlook.office365.com, office.com, outlook.com, live.com, and MCAS/Defender proxy variants), so each is listed. Access is limited to these domains; no other site is matched.
+```
+
+**Single purpose (Chrome)**
+```
+Export the events displayed in the user's Outlook Web calendar to a standard .ics file downloaded to the user's device.
+```
+
+**Data usage disclosures (Chrome "Privacy practices" tab)**
+Tick nothing in the data-collection matrix, then confirm all three statements:
+no sale of data, no use unrelated to the single purpose, no use for
+creditworthiness or lending. Privacy policy URL:
+https://visiomultimedia.com/en/extensions-privacy-policy/#calendar-liberator
+
+### Notes for Reviewers (Firefox, and Edge's optional field)
+
+Reviewers usually have no corporate Outlook account, so tell them how to test
+and what to expect:
+
+```
+Testing the extension requires a signed-in Outlook Web calendar (a free outlook.com account works). Open https://outlook.live.com/calendar with a few events in the next three weeks, click the extension icon and press "Export .ics" — the page will step through four weeks in week view and then download the file.
+
+The extension is unminified and has no build step: the sources in the package are exactly what runs. There are no remote scripts, no eval, and no network requests of any kind — content.js and ics-generator.js read the DOM and produce a Blob that is downloaded via an object URL. The bundled font (fonts/) is Space Grotesk, SIL Open Font License, included locally so the popup makes no external requests.
+
+Source: https://github.com/fabiocchetti/calendar-liberator
 ```
 
 ### Screenshots
 
-Ready in `assets/screenshots/` (masters in `assets/screenshots/masters/`):
+Ready in `assets/screenshots/` (unedited originals in `assets/screenshots/originals/`):
 - **Chrome + Firefox:** use the `1280x800/` files (Chrome requires exactly 1280x800 or 640x400; Firefox accepts any size)
 - **Edge:** use the `1366x768/` files
 
 Upload them in filename order: 1 = Outlook calendar (context), 2 = popup, 3 = export in progress, 4 = imported result.
 
+Suggested captions (Edge and Firefox show them; Chrome does not):
+1. `Your work calendar in Outlook on the web — where the export starts`
+2. `One popup: calendar name, timezone, and what to include`
+3. `The export walks four weeks and restores your original view`
+4. `Work meetings imported next to your personal events`
+
 ### Optional Promotional Images
 - **Chrome:** small tile 440x280 (search results), marquee 1400x560 (featured)
-- **Edge:** store icon 300x300 (export from `assets/icon-master.svg`)
+- **Edge:** store icon 300x300 (already generated as `assets/icon-300.png`, or re-export from `assets/icon-source.svg`)
 - **Firefox:** none
-
-### Privacy Practices (Chrome tab)
-- Privacy policy URL: https://visiomultimedia.com/en/extensions-privacy-policy/#calendar-liberator
-- Declare that no data is collected and justify the host permissions (see `PRIVACY.md`)
 
 ## Review Times & Submission Order
 
