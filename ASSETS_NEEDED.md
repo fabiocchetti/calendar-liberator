@@ -4,26 +4,19 @@
 
 Icons (16/32/48/96/128 px) live at the project root and are referenced in `manifest.json`. The 96px icon is added to the Firefox package only, by `build.sh`. Do not modify them; the SVG masters are kept in `assets/` as reference.
 
-### 1. Store Listing Screenshots (REQUIRED — still needed)
+### 1. Store Listing Screenshots ✅ DONE
 
-#### Chrome Web Store:
-- **1-5 screenshots** (1280x800 or 640x400)
-- Show: popup interface, export in progress, successful export
-- Recommended: 3 screenshots covering main flow
+Ready-to-upload screenshots live in `assets/screenshots/` (masters in `assets/screenshots/masters/`):
 
-#### Firefox Add-ons:
-- **1-10 screenshots** (any size, but 1280x800 recommended)
-- Same as Chrome
+- `1-outlook-calendar.png` — Outlook Web calendar, the page the extension works on
+- `2-popup-interface.png` — popup with calendar name, timezone selector, options
+- `3-export-in-progress.png` — export running with progress and page overlay
+- `4-imported-calendar.png` — exported events imported into a calendar app
 
-#### Edge Add-ons:
-- **1-10 screenshots** (1366x768 or 1920x1080)
-- Same as Chrome
-
-#### Screenshot Ideas:
-1. **"Simple one-click interface"** — Show popup with timezone selector and options
-2. **"Real-time progress tracking"** — Show export in progress with progress bar
-3. **"Export complete"** — Show success message and downloaded file
-4. **"Import anywhere"** — Show ICS file being imported to iOS/Google Calendar
+#### Which folder for which store:
+- **Chrome Web Store:** `assets/screenshots/1280x800/` (exact 1280x800 — Chrome rejects any other size except 640x400)
+- **Firefox Add-ons:** same `1280x800/` files (Firefox accepts any size)
+- **Edge Add-ons:** `assets/screenshots/1366x768/`
 
 ### 2. Store Promotional Images (OPTIONAL but Recommended)
 
@@ -105,9 +98,10 @@ outlook, calendar, export, ics, office 365, calendar backup, calendar sync, prod
 - [x] Icon 32x32
 - [x] Icon 48x48
 - [x] Icon 128x128
-- [ ] Screenshot 1: Popup interface
-- [ ] Screenshot 2: Export in progress
-- [ ] Screenshot 3: Success/Import
+- [x] Screenshot 1: Outlook calendar view
+- [x] Screenshot 2: Popup interface
+- [x] Screenshot 3: Export in progress
+- [x] Screenshot 4: Imported into calendar app
 - [ ] (Optional) Promotional tile 440x280
 - [ ] (Optional) Marquee 1400x560
 - [ ] (Optional) Edge store icon 300x300 (export from `assets/icon-master.svg`)
@@ -135,7 +129,7 @@ outlook, calendar, export, ics, office 365, calendar backup, calendar sync, prod
 - [x] README.md complete and accurate
 - [x] LICENSE file present (MIT)
 - [x] BUILD.md with packaging instructions
-- [x] PRIVACY.md (use its GitHub URL as the privacy policy link in store listings)
+- [x] PRIVACY.md (the public privacy policy lives at https://visiomultimedia.com/en/extensions-privacy-policy/#calendar-liberator — use this URL in store listings)
 
 ### Testing
 - [ ] Tested on multiple Outlook accounts
@@ -150,8 +144,8 @@ outlook, calendar, export, ics, office 365, calendar backup, calendar sync, prod
 ### Store Requirements
 - [ ] Developer account created
 - [ ] Payment ($5 for Chrome, free for Firefox/Edge)
-- [x] Privacy policy (see `PRIVACY.md` — publish the repo and link to it)
-- [ ] Screenshots prepared
+- [x] Privacy policy (live at https://visiomultimedia.com/en/extensions-privacy-policy/#calendar-liberator)
+- [x] Screenshots prepared
 - [x] Icons created
 
 ---

@@ -56,7 +56,7 @@ Test a full export on a real Outlook calendar in each browser before submitting.
 1. Go to the [Chrome Web Store Developer Dashboard](https://chrome.google.com/webstore/devconsole)
 2. Pay the one-time $5 developer fee (first extension only)
 3. Upload `calendar-liberator-chrome-{version}.zip`
-4. Fill in the store listing and the **Privacy practices** tab (see `PRIVACY.md`; declare that no data is collected and justify the host permissions)
+4. Fill in the store listing and the **Privacy practices** tab (privacy policy URL: https://visiomultimedia.com/en/extensions-privacy-policy/#calendar-liberator; declare that no data is collected and justify the host permissions — see `PRIVACY.md`)
 5. Submit for review (typically 1–3 days)
 
 ### Firefox Add-ons
