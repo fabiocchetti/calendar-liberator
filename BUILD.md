@@ -39,7 +39,7 @@ unzip -p dist/calendar-liberator-firefox-*.zip manifest.json
 ## Icons
 
 The packaged icons (`icon-*.png` at the project root) are final assets — do
-not modify them. The SVG sources live in `assets/` in case new sizes are ever
+not modify them. The SVG sources live in `assets/brand/` in case new sizes are ever
 needed (e.g. the 300x300 Edge store icon).
 
 ## Testing Before Publishing
@@ -132,7 +132,7 @@ set of HTML tags, so `<b>`/`<ul>` can be added there if desired.
 ```
 Calendar Liberator exports the events from your Outlook Web calendar into a standard .ics (iCalendar) file, so you can import your work schedule into Google Calendar, Apple Calendar, Fastmail, Proton Calendar, Thunderbird or any app that reads calendar files — and finally see work and personal life side by side.
 
-WHY THIS EXISTS
+WHY CALENDAR LIBERATOR
 
 Many companies will only sync your work calendar to your phone if you enrol the device in their mobile device management (Intune/MDM), which means handing over a degree of control of a personal device and granting access to your entire Microsoft account. If you would rather not do that, the usual alternatives are retyping every meeting by hand, or going without.
 
@@ -149,14 +149,20 @@ HOW IT WORKS
 
 WHAT GETS EXPORTED
 
+Always:
 • Event title
 • Date, start time and end time
-• All-day and multi-day events
-• Organiser name and the location or room shown on the event, when Outlook displays them
+• All-day and multi-day events, kept as all-day
 • Busy / free / tentative status
 • A note marking recurring instances
 
-And nothing else. No attendee lists, no invitation bodies or meeting notes, no attachments, no email addresses, no message content. The extension only ever reads the calendar grid — it never touches your mailbox, your files or your contacts.
+When Outlook shows them on the event, and only then:
+• The organiser's display name
+• The location or meeting room
+
+Those last two are copied across exactly as they appear in the calendar grid, so your imported events keep the context that makes them useful — who called the meeting and which room to walk to. If Outlook doesn't display them, the fields are simply left out: the extension never opens an event, never queries anything, and never fills in a blank.
+
+And that is the whole list. No attendee lists, no invitation bodies or meeting notes, no attachments, no email addresses, no message content, no meeting join links beyond what the location field already shows. The extension only ever reads the calendar grid — it never touches your mailbox, your files or your contacts.
 
 PRIVACY BY DESIGN
 
@@ -178,11 +184,24 @@ WORKS WITH
 • Corporate MCAS / Defender for Cloud Apps proxy domains
 • Chrome, Edge, Firefox, Brave, Opera and other Chromium browsers
 
-IMPORT IT ANYWHERE
+IMPORTING THE FILE IS A MANUAL STEP
 
-• Google Calendar — Settings, then Import & export
-• Apple Calendar and iCloud — File, then Import
-• Thunderbird, Fastmail, Proton Calendar, Zoho, and any other iCalendar-compatible app
+Calendar Liberator produces the file; putting it into your calendar app is something you do yourself, and every platform words it differently:
+
+• Google Calendar — only from the web version: Settings, then Import & export, then Import. The mobile app cannot import files.
+• Apple Calendar on Mac — File, then Import, and pick which calendar receives the events.
+• iPhone and iPad — open the .ics from Files or from an email attachment and tap Add All. Importing on a Mac signed into the same iCloud account is usually easier.
+• Outlook desktop, Thunderbird, Fastmail, Proton Calendar, Zoho and other iCalendar-compatible apps — look for "Import" in the calendar settings.
+
+A tip worth knowing: import into a dedicated calendar ("Work", say) rather than your main one. It keeps work events visually separate and lets you delete the whole set in one move if you ever want to start clean.
+
+A SNAPSHOT, NOT A LIVE SYNC — PLEASE READ
+
+The exported file captures your calendar as it is at the moment you export it. It does not keep itself up to date. When meetings are added, moved or cancelled in Outlook, the file you already imported will not follow: you export again and re-import to catch up.
+
+In practice this works best as a small habit. The author runs the export at the end of the working day, so the next morning's schedule is already sitting on the phone alongside personal appointments. Because events carry stable identifiers, a calendar app that matches on them updates the events it already has instead of duplicating them.
+
+If you would rather not do it by hand, you can host the exported file yourself today — on GitHub Pages, S3 or any static host — and subscribe to that URL, which makes phones refresh it on their own schedule. The GitHub README walks through it. Making that a one-click option inside the extension, uploading only to storage you own and configure, is the main item on the roadmap.
 
 PERFECT FOR
 
@@ -196,7 +215,6 @@ GOOD TO KNOW
 
 • The Outlook interface must be set to English.
 • The export covers 28 days (7 back, 21 ahead), not your whole calendar history.
-• The .ics is a snapshot, not a live subscription: run the export again whenever you want fresh data. Advanced users can host the file themselves for automatic refresh — the GitHub README explains how.
 • The extension reads Outlook's web interface, so a major redesign by Microsoft can break it until an update ships.
 • It is read-only. It can never create, edit or delete anything in your Outlook calendar.
 • Always check the imported result before relying on it for something important.
@@ -214,13 +232,34 @@ Calendar Liberator is an independent project. It is not affiliated with, endorse
 Productivity (all three stores). Firefox secondary tags: "Tabs" is wrong here —
 leave only Productivity.
 
-### Tags / Keywords
+### Search Terms / Tags
 
-Edge and Firefox accept keyword fields; Chrome does not (it indexes the
-description, and keyword stuffing is a policy violation there).
+Chrome has no keyword field (it indexes the description, and keyword stuffing
+is a policy violation there). Edge and Firefox do.
+
+**Microsoft Edge — "Search terms"**
+Limits: max 7 terms, 30 characters per term, 21 words total across all terms.
+Enter one term per box:
 
 ```
-outlook calendar export, ics export, icalendar, calendar sync, outlook to google calendar, outlook to apple calendar, office 365 calendar, work calendar, calendar backup, no mdm
+export outlook calendar
+outlook to google calendar
+outlook to apple calendar
+ics icalendar
+work calendar sync
+office 365 calendar
+calendar backup
+```
+Exactly 21/21 words, longest term 26/30 characters. Note that the word budget
+is shared, so "calendar" alone spends 6 of the 21 — that is deliberate, since
+Edge matches multi-word queries as phrases.
+
+If the form rejects the set (some validators count differently), shorten term 5
+to `calendar sync` and term 6 to `office 365`, which brings the total to 19.
+
+**Firefox — "Tags"** (up to 10, no word budget)
+```
+outlook, calendar, ics, icalendar, export, calendar-sync, google-calendar, apple-calendar, office-365, productivity
 ```
 
 ### Permission Justifications
@@ -271,14 +310,14 @@ Ready in `assets/screenshots/` (unedited originals in `assets/screenshots/origin
 Upload them in filename order: 1 = Outlook calendar (context), 2 = popup, 3 = export in progress, 4 = imported result.
 
 Suggested captions (Edge and Firefox show them; Chrome does not):
-1. `Your work calendar in Outlook on the web — where the export starts`
-2. `One popup: calendar name, timezone, and what to include`
+1. `Your work calendar in Outlook on the web, where the export starts`
+2. `Export popup: calendar name, timezone, and what to include`
 3. `The export walks four weeks and restores your original view`
 4. `Work meetings imported next to your personal events`
 
 ### Optional Promotional Images
 - **Chrome:** small tile 440x280 (search results), marquee 1400x560 (featured)
-- **Edge:** store icon 300x300 (already generated as `assets/icon-300.png`, or re-export from `assets/icon-source.svg`)
+- **Edge:** store icon 300x300 (already generated as `assets/brand/icon-300.png`, or re-export from `assets/brand/icon-source.svg`)
 - **Firefox:** none
 
 ## Review Times & Submission Order

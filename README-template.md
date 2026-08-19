@@ -62,7 +62,41 @@ _(Coming soon - extension pending review)_
    - Filter events to exact date range (7 days back + 21 days forward)
    - Generate and download the ICS file
    - Restore your original view
-6. **Import the downloaded file** into iOS Calendar, Google Calendar, or any calendar app
+7. **Import the downloaded file** into your calendar app (see below)
+
+## Importing the File
+
+Generating the `.ics` is where the extension's job ends — importing it is a
+manual step, and each platform words it differently:
+
+| App | Where to import |
+|---|---|
+| Google Calendar | Web version only: **Settings → Import & export → Import**. The mobile app cannot import files. |
+| Apple Calendar (macOS) | **File → Import**, then pick the destination calendar |
+| iOS / iPadOS | Open the `.ics` from Files or an email attachment, tap **Add All**. Importing on a Mac on the same iCloud account is usually easier. |
+| Outlook desktop | **File → Open & Export → Import/Export → Import an iCalendar (.ics) file** |
+| Thunderbird, Fastmail, Proton Calendar, Zoho | Look for **Import** in the calendar settings |
+
+Import into a **dedicated calendar** (e.g. "Work") rather than your main one:
+work events stay visually separate, and you can remove the whole set in one
+move.
+
+### It's a Snapshot — Re-Export to Stay Current
+
+The file reflects your calendar at the moment you exported it, and does not
+update itself. When meetings are added, moved or cancelled in Outlook, the file
+you already imported does not follow — export again and re-import.
+
+This works best as a habit: run the export at the end of the working day, and
+the next morning's schedule is already on your phone alongside your personal
+appointments. Events carry stable UIDs, so calendar apps that match on UID
+update existing events rather than duplicating them.
+
+To skip the manual round trip, host the exported file yourself (GitHub Pages,
+S3, any static host) and subscribe to its URL, so devices refresh it on their
+own. Building that into the extension as a one-click, user-owned upload is the
+main item on the roadmap:
+https://github.com/fabiocchetti/calendar-liberator
 
 ## Technical Implementation
 

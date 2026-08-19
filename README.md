@@ -1,6 +1,11 @@
-# Calendar Liberator
+<p align="center">
+  <img src="assets/brand/logo-full.png" alt="Calendar Liberator" width="440">
+</p>
 
-**Export your Outlook calendar to ICS format in seconds. Works with any Outlook or Office 365 web domain.**
+<p align="center">
+  <strong>Export your Outlook calendar to ICS format in seconds.<br>
+  Works with any Outlook or Office 365 web domain.</strong>
+</p>
 
 A browser extension that liberates your work calendar by scraping visible events and exporting them to standard ICS format—perfect for importing into iOS Calendar, Google Calendar, or any calendar application.
 
@@ -101,7 +106,44 @@ Each package includes a browser-specific README with tailored installation instr
    - Filter events to exact date range (7 days back + 21 days forward)
    - Generate an ICS file
    - Restore your original view and navigate to today
-7. **Import the downloaded ICS file** into any calendar application
+7. **Import the downloaded ICS file** into any calendar application — see below
+
+---
+
+## Importing the File
+
+Calendar Liberator generates the `.ics`; getting it into your calendar app is a
+manual step, and the wording differs on every platform:
+
+| App | Where to import |
+|---|---|
+| Google Calendar | Web version only: **Settings → Import & export → Import**. The mobile app cannot import files. |
+| Apple Calendar (macOS) | **File → Import**, then choose which calendar receives the events |
+| iOS / iPadOS | Open the `.ics` from Files or an email attachment and tap **Add All**. Importing on a Mac on the same iCloud account is usually easier. |
+| Outlook desktop | **File → Open & Export → Import/Export → Import an iCalendar (.ics) file** |
+| Thunderbird, Fastmail, Proton Calendar, Zoho | Look for **Import** in the calendar settings |
+
+**Import into a dedicated calendar** (e.g. "Work") rather than your main one.
+Work events stay visually separate, and you can delete the whole set in one
+move if you want to start clean.
+
+### It's a Snapshot — Re-Export to Stay Current
+
+The exported file reflects your calendar at the moment of export. It does not
+update itself. When meetings are added, moved or cancelled in Outlook, the file
+you already imported does not follow — you export again and re-import.
+
+This works best as a habit: run the export at the end of the working day, and
+the next morning's schedule is already on your phone next to your personal
+appointments. Events carry stable UIDs (Outlook's calendar item IDs where
+available), so calendar apps that match on UID update existing events instead
+of duplicating them.
+
+To avoid the manual round trip entirely, you can host the exported file
+yourself and subscribe to its URL — see
+[Advanced: Self-Hosting for Auto-Updates](#advanced-self-hosting-for-auto-updates).
+Making that a one-click option inside the extension is the main item on the
+[Roadmap](#roadmap).
 
 ---
 
@@ -140,7 +182,7 @@ Each package includes a browser-specific README with tailored installation instr
 
 - **English Only:** Currently requires Outlook interface to be in English
 - **28-Day Window:** Exports limited to exactly 28 days (7 days back + 21 forward, not entire calendar history)
-- **Manual Re-Import:** The exported ICS is a static snapshot — subscribed devices do not auto-update (see Roadmap)
+- **Manual Re-Import:** The exported ICS is a static snapshot that must be imported by hand, and the procedure differs per platform — see [Importing the File](#importing-the-file)
 - **Read-Only:** Cannot modify Outlook calendar, only read/export
 - **No Authentication:** Relies on user's existing Outlook session
 - **Recurring Events:** Exports individual instances, not recurrence rules (prevents import duplicates)
@@ -221,9 +263,11 @@ calendar-liberator/
 ├── popup.js               # Popup logic
 ├── content.js             # Calendar scraping logic
 ├── ics-generator.js       # ICS file generation
-├── icon-*.png             # Extension icons
+├── icons/                 # Extension icons (16/32/48/96/128 px, shipped)
 ├── fonts/                 # Space Grotesk 600 (wordmark, bundled locally)
-├── assets/                # SVG icon sources (design reference)
+├── assets/
+│   ├── brand/             # Logo and icon sources — not shipped in the package
+│   └── screenshots/       # Store listing screenshots, per required size
 ├── test/                  # ICS generator tests
 ├── LICENSE                # MIT License
 ├── PRIVACY.md             # Privacy policy
