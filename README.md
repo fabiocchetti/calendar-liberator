@@ -4,15 +4,13 @@
 
 A browser extension that liberates your work calendar by scraping visible events and exporting them to standard ICS format—perfect for importing into iOS Calendar, Google Calendar, or any calendar application.
 
-<a href="https://microsoftedge.microsoft.com/addons/detail/calendar-liberator/omjcoopfimlfbminglnlhmilifmfidhp">
-  <img src="assets/Calendar-Liberator_Edge-Badge.png" alt="Get it on Microsoft Edge Add-ons" width="151" height="45" />
-</a>
-<br/>
-<!-- TODO: wrap in <a href="..."> once the Chrome Web Store listing is live -->
-<img src="assets/Calendar-Liberator_Chrome-Badge.png" alt="Get it on Chrome Web Store (coming soon)" width="159" height="45" />
-<br/>
-<!-- TODO: wrap in <a href="..."> once the Firefox Add-ons listing is live -->
-<img src="assets/Calendar-Liberator_Firefox-Badge.png" alt="Get it on Firefox Add-ons (coming soon)" width="129" height="45" />
+<p>
+  <img src="assets/Calendar-Liberator_Firefox-Badge.png" alt="Get the Firefox add-on (coming soon)" width="129" height="45" />
+  <br/>
+  <img src="assets/Calendar-Liberator_Chrome-Badge.png" alt="Available in the Chrome Web Store (coming soon)" width="159" height="45" />
+  <br/>
+  <a href="https://microsoftedge.microsoft.com/addons/detail/calendar-liberator/omjcoopfimlfbminglnlhmilifmfidhp"><img src="assets/Calendar-Liberator_Edge-Badge.png" alt="Get it on Microsoft Edge Add-ons" width="151" height="45" /></a>
+</p>
 
 ---
 
