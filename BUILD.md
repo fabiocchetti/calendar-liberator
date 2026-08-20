@@ -39,8 +39,9 @@ unzip -p dist/calendar-liberator-firefox-*.zip manifest.json
 ## Icons
 
 The packaged icons (`icon-*.png` at the project root) are final assets — do
-not modify them. The SVG sources live in `assets/brand/` in case new sizes are ever
-needed (e.g. the 300x300 Edge store icon).
+not modify them. The SVG sources live in `assets/` (`Calendar-Liberator_Icon.svg` for 48px and up,
+`Calendar-Liberator_Icon-Small.svg` for the simplified 16/32px versions) in case new
+sizes are ever needed (e.g. the 300x300 Edge store icon).
 
 ## Testing Before Publishing
 
@@ -303,9 +304,9 @@ Source: https://github.com/fabiocchetti/calendar-liberator
 
 ### Screenshots
 
-Ready in `assets/screenshots/` (unedited originals in `assets/screenshots/originals/`):
-- **Chrome + Firefox:** use the `1280x800/` files (Chrome requires exactly 1280x800 or 640x400; Firefox accepts any size)
-- **Edge:** use the `1366x768/` files
+Ready in `assets/` (unedited originals are the `*_Screenshot-Original-*.png` files):
+- **Chrome + Firefox:** use the `*_Screenshot-<n>-*-1280x800.png` files (Chrome requires exactly 1280x800 or 640x400; Firefox accepts any size)
+- **Edge:** use the `*_Screenshot-<n>-*-1366x768.png` files
 
 Upload them in filename order: 1 = Outlook calendar (context), 2 = popup, 3 = export in progress, 4 = imported result.
 
@@ -315,10 +316,24 @@ Suggested captions (Edge and Firefox show them; Chrome does not):
 3. `The export walks four weeks and restores your original view`
 4. `Work meetings imported next to your personal events`
 
-### Optional Promotional Images
-- **Chrome:** small tile 440x280 (search results), marquee 1400x560 (featured)
-- **Edge:** store icon 300x300 (already generated as `assets/brand/icon-300.png`, or re-export from `assets/brand/icon-source.svg`)
+### Promotional Images
+
+Two designs, each in both Chrome canvas sizes (Edge accepts the same files). All four are
+24-bit PNG with no alpha channel, as both stores require:
+
+| File | Canvas | Design |
+|---|---|---|
+| `Calendar-Liberator_Promo-Tile-1400x560.png` | 1400x560 | Branded — dark background, logo, tagline, event motif |
+| `Calendar-Liberator_Promo-Tile-440x280.png` | 440x280 | Branded, compact |
+| `Calendar-Liberator_Promo-Tile-1400x560-Logo.png` | 1400x560 | Plain — logo centred on white |
+| `Calendar-Liberator_Promo-Tile-440x280-Logo.png` | 440x280 | Plain, compact |
+
+- **Chrome:** 1400x560 is the marquee (featured placement), 440x280 the small tile (search results)
+- **Edge:** 1400x560 is the large promotional tile; store icon 300x300 is `Calendar-Liberator_Store-Logo-300.png` (or re-export from `Calendar-Liberator_Icon.svg`)
 - **Firefox:** none
+
+The `-Logo` variants are `Calendar-Liberator_Logo.png` centred on a white canvas — recompose
+them if the logo ever changes.
 
 ## Review Times & Submission Order
 

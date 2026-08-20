@@ -1,4 +1,4 @@
-<img src="assets/brand/logo-full.png" alt="Calendar Liberator" width="440">
+<img src="assets/Calendar-Liberator_Logo.png" alt="Calendar Liberator" width="440">
 
 **Export your Outlook calendar to ICS format in seconds. Works with any Outlook or Office 365 web domain.**
 
@@ -260,9 +260,7 @@ calendar-liberator/
 ├── ics-generator.js       # ICS file generation
 ├── icons/                 # Extension icons (16/32/48/96/128 px, shipped)
 ├── fonts/                 # Space Grotesk 600 (wordmark, bundled locally)
-├── assets/
-│   ├── brand/             # Logo and icon sources — not shipped in the package
-│   └── screenshots/       # Store listing screenshots, per required size
+├── assets/                # Brand sources, store screenshots and promo tile — not shipped
 ├── test/                  # ICS generator tests
 ├── LICENSE                # MIT License
 ├── PRIVACY.md             # Privacy policy
