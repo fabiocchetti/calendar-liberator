@@ -1,8 +1,18 @@
-<img src="assets/Calendar-Liberator_Logo.png" alt="Calendar Liberator" width="440">
+<img src="assets/Calendar-Liberator_Logo.png" alt="Calendar Liberator" width="440" height="97" />
 
 **Export your Outlook calendar to ICS format in seconds. Works with any Outlook or Office 365 web domain.**
 
 A browser extension that liberates your work calendar by scraping visible events and exporting them to standard ICS format—perfect for importing into iOS Calendar, Google Calendar, or any calendar application.
+
+<a href="https://microsoftedge.microsoft.com/addons/detail/calendar-liberator/omjcoopfimlfbminglnlhmilifmfidhp">
+  <img src="assets/Calendar-Liberator_Edge-Badge.png" alt="Get it on Microsoft Edge Add-ons" width="151" height="45" />
+</a>
+<br/>
+<!-- TODO: wrap in <a href="..."> once the Chrome Web Store listing is live -->
+<img src="assets/Calendar-Liberator_Chrome-Badge.png" alt="Get it on Chrome Web Store (coming soon)" width="159" height="45" />
+<br/>
+<!-- TODO: wrap in <a href="..."> once the Firefox Add-ons listing is live -->
+<img src="assets/Calendar-Liberator_Firefox-Badge.png" alt="Get it on Firefox Add-ons (coming soon)" width="129" height="45" />
 
 ---
 
@@ -40,8 +50,8 @@ A browser extension that liberates your work calendar by scraping visible events
 
 ### From Extension Stores
 
+**Microsoft Edge Add-ons:** [Calendar Liberator](https://microsoftedge.microsoft.com/addons/detail/calendar-liberator/omjcoopfimlfbminglnlhmilifmfidhp)  
 **Chrome Web Store:** _(Coming soon)_  
-**Microsoft Edge Add-ons:** _(Coming soon)_  
 **Firefox Add-ons:** _(Coming soon)_
 
 ### From Source (Developer Mode)
@@ -184,12 +194,17 @@ Making that a one-click option inside the extension is the main item on the
 
 ---
 
-## Roadmap
+## Roadmap & To Do
 
-Planned ideas, roughly in priority order. Contributions and feedback welcome.
+Highest priority first. Last reviewed 2026-08-20, against v1.1.1.
 
-- **Hosted, auto-updating exports** — Today the ICS is a static snapshot you re-import by hand every run. The goal is an optional one-click upload to user-owned hosting (e.g. GitHub Pages, S3/R2, WebDAV) so subscribed devices (iOS Calendar, Google Calendar) refresh automatically. This must stay privacy-first: strictly opt-in, uploads only to storage the user owns and configures, never to a third-party service operated by the extension.
-- **Support for other calendar web apps** — Google Calendar, Fastmail, Proton Calendar, etc. Nice-to-have, low priority; the scraping engine would need per-site adapters.
+**1. Support `outlook.cloud.microsoft` — breaking.** Microsoft is moving M365 web apps to the `cloud.microsoft` domain ([details](https://support.microsoft.com/en-US/Office/what-is-cloud-microsoft)). Legacy URLs only redirect for now; when that stops, the extension silently reports "not an Outlook page". Add `*://outlook.cloud.microsoft/*` to `host_permissions` and `content_scripts[0].matches` — the exact host, not `*://*.cloud.microsoft/*`, which would cover all of Teams/OneDrive/Word. Then update the host check in `validateOutlookPage()` (`content.js`) and its duplicate in `popup.js`, plus the domain lists in `BUILD.md` and this README. Note `manifest.json` already has the MCAS *proxy* of the new domain, but not the domain itself.
+
+**2. Drop the unused `*.live.com` permission.** Neither validator ever accepts a `live.com` host (`outlook.live.com` doesn't contain `outlook.com`), so it's dead — and broad enough to risk store rejection. The `BUILD.md` justification already omits it, so manifest and justification disagree. Decide first whether to *support* consumer Outlook instead: if yes, narrow to `*://outlook.live.com/*` and add it to both validators; if no, delete both entries.
+
+**3. Hosted, auto-updating exports.** Make [self-hosting](#advanced-self-hosting-for-auto-updates) a one-click option instead of a manual re-import every run. Must stay opt-in and off by default, upload only to storage the user owns, and keep `PRIVACY.md` plus the store privacy declarations honest — they currently say no data ever leaves the device. Needs `storage` and host permissions.
+
+**Lower priority:** other calendar web apps (per-site adapters); non-English Outlook (the scraper parses English `aria-label` strings); merging the duplicated host check in `content.js` and `popup.js`, which items 1 and 2 both touch.
 
 ---
 
