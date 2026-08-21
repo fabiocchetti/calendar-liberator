@@ -108,21 +108,21 @@ Calendar Liberator — Outlook Calendar to ICS
 
 **Chrome Web Store — 132 characters max**
 ```
-Export your Outlook Web calendar to an .ics file and import it into Google, Apple or any calendar app. Local, private, no sign-in.
+Export your Outlook Web calendar to a standard .ics file and import it into the calendar app you already use. Private, no sign-in.
 ```
 (130 characters)
 
 **Microsoft Edge Add-ons — 200 characters max**
 ```
-Export your Outlook Web calendar to a standard .ics file in one click, then import it into Google Calendar, Apple Calendar or any calendar app. Runs entirely in your browser — no sign-in, no servers.
+Export your Outlook Web calendar to a standard .ics file in one click, then import it into the calendar app you already use. Runs entirely in your browser — no sign-in, no servers, no data collection.
 ```
 (199 characters)
 
 **Firefox Add-ons — 250 characters max**
 ```
-Sync your work calendar without enrolling your phone. Calendar Liberator exports the events shown in Outlook on the web to a standard .ics file you can import into Google Calendar, Apple Calendar or any calendar app. No sign-in, no tracking.
+Sync your work calendar without enrolling your phone. Calendar Liberator exports the events shown in Outlook on the web to a standard .ics file that you can import into the calendar app you already use. No sign-in, no tracking.
 ```
-(241 characters)
+(227 characters)
 
 ### Detailed Description
 
@@ -131,11 +131,11 @@ bullets below are literal characters, not markup); Firefox accepts a limited
 set of HTML tags, so `<b>`/`<ul>` can be added there if desired.
 
 ```
-Calendar Liberator exports the events from your Outlook Web calendar into a standard .ics (iCalendar) file, so you can import your work schedule into Google Calendar, Apple Calendar, Fastmail, Proton Calendar, Thunderbird or any app that reads calendar files — and finally see work and personal life side by side.
+Calendar Liberator exports the events from your Outlook Web calendar into a standard .ics (iCalendar) file, so you can import your work schedule into the calendar app you already use, and finally see work and personal life side by side.
 
 WHY CALENDAR LIBERATOR
 
-Many companies will only sync your work calendar to your phone if you enrol the device in their mobile device management (Intune/MDM), which means handing over a degree of control of a personal device and granting access to your entire Microsoft account. If you would rather not do that, the usual alternatives are retyping every meeting by hand, or going without.
+Many companies will only sync your work calendar to your phone if you enroll the device in their mobile device management (Intune/MDM), which means handing over a degree of control of a personal device and granting access to your entire Microsoft account. If you would rather not do that, the usual alternatives are retyping every meeting by hand, or going without.
 
 Calendar Liberator takes a third road. It asks for no password, connects to no Microsoft API, registers no OAuth application, and runs no server. It reads the calendar you are already looking at, in the browser session you have already signed into, and writes it to a file on your own disk. Nothing leaves your computer.
 
@@ -150,20 +150,14 @@ HOW IT WORKS
 
 WHAT GETS EXPORTED
 
-Always:
 • Event title
 • Date, start time and end time
-• All-day and multi-day events, kept as all-day
+• All-day and multi-day events
+• Organizer name and the location or room shown on the event, when Outlook displays them
 • Busy / free / tentative status
 • A note marking recurring instances
 
-When Outlook shows them on the event, and only then:
-• The organiser's display name
-• The location or meeting room
-
-Those last two are copied across exactly as they appear in the calendar grid, so your imported events keep the context that makes them useful — who called the meeting and which room to walk to. If Outlook doesn't display them, the fields are simply left out: the extension never opens an event, never queries anything, and never fills in a blank.
-
-And that is the whole list. No attendee lists, no invitation bodies or meeting notes, no attachments, no email addresses, no message content, no meeting join links beyond what the location field already shows. The extension only ever reads the calendar grid — it never touches your mailbox, your files or your contacts.
+And nothing else. No attendee lists, no invitation bodies or meeting notes, no attachments, no email addresses, no message content. The extension only ever reads the calendar grid — it never touches your mailbox, your files or your contacts.
 
 PRIVACY BY DESIGN
 
@@ -172,7 +166,7 @@ PRIVACY BY DESIGN
 • No accounts, no credentials, no OAuth tokens
 • Nothing is written to storage — the events exist only in memory during the export, then become the file you download
 • Permissions limited to activeTab plus host access to Outlook and Office 365 domains. The extension cannot see any other website
-• Fully open source under the MIT licence, so every claim above can be verified line by line
+• Fully open source under the MIT license, so every claim above can be verified line by line
 
 TIMEZONES DONE PROPERLY
 
@@ -183,32 +177,17 @@ WORKS WITH
 • outlook.office.com and outlook.office365.com
 • outlook.com and Microsoft 365 tenants on office.com
 • Corporate MCAS / Defender for Cloud Apps proxy domains
-• Chrome, Edge, Firefox, Brave, Opera and other Chromium browsers
+• Desktop Chromium browsers and Firefox
 
-IMPORTING THE FILE IS A MANUAL STEP
+IMPORTING THE FILE
 
-Calendar Liberator produces the file; putting it into your calendar app is something you do yourself, and every platform words it differently:
-
-• Google Calendar — only from the web version: Settings, then Import & export, then Import. The mobile app cannot import files.
-• Apple Calendar on Mac — File, then Import, and pick which calendar receives the events.
-• iPhone and iPad — open the .ics from Files or from an email attachment and tap Add All. Importing on a Mac signed into the same iCloud account is usually easier.
-• Outlook desktop, Thunderbird, Fastmail, Proton Calendar, Zoho and other iCalendar-compatible apps — look for "Import" in the calendar settings.
-
-A tip worth knowing: import into a dedicated calendar ("Work", say) rather than your main one. It keeps work events visually separate and lets you delete the whole set in one move if you ever want to start clean.
-
-A SNAPSHOT, NOT A LIVE SYNC — PLEASE READ
-
-The exported file captures your calendar as it is at the moment you export it. It does not keep itself up to date. When meetings are added, moved or cancelled in Outlook, the file you already imported will not follow: you export again and re-import to catch up.
-
-In practice this works best as a small habit. The author runs the export at the end of the working day, so the next morning's schedule is already sitting on the phone alongside personal appointments. Because events carry stable identifiers, a calendar app that matches on them updates the events it already has instead of duplicating them.
-
-If you would rather not do it by hand, you can host the exported file yourself today — on GitHub Pages, S3 or any static host — and subscribe to that URL, which makes phones refresh it on their own schedule. The GitHub README walks through it. Making that a one-click option inside the extension, uploading only to storage you own and configure, is the main item on the roadmap.
+The extension produces the file; putting it into your calendar app is a manual step you do yourself. Virtually every calendar application reads .ics files, and the command is normally called "Import" — on a computer it sits in the File menu or in the calendar settings, and on a phone you can usually open the downloaded file and confirm that the events should be added. Some services accept imports only from their web version, not from their mobile app. Step-by-step instructions are in the GitHub README linked below.
 
 PERFECT FOR
 
 • Seeing work meetings next to personal appointments on your own phone
 • Keeping a personal device free of corporate device management
-• Contractors and consultants juggling more than one organisation's calendar
+• Contractors and consultants juggling more than one organization's calendar
 • Sharing your availability without sharing your mailbox
 • Keeping an offline snapshot or backup of your schedule
 
@@ -216,6 +195,7 @@ GOOD TO KNOW
 
 • The Outlook interface must be set to English.
 • The export covers 28 days (7 back, 21 ahead), not your whole calendar history.
+• The .ics is a snapshot, not a live subscription: run the export again whenever you want fresh data. Advanced users can host the file themselves for automatic refresh — the GitHub README explains how.
 • The extension reads Outlook's web interface, so a major redesign by Microsoft can break it until an update ships.
 • It is read-only. It can never create, edit or delete anything in your Outlook calendar.
 • Always check the imported result before relying on it for something important.
@@ -225,7 +205,7 @@ OPEN SOURCE
 Source code, issue tracker and roadmap: https://github.com/fabiocchetti/calendar-liberator
 Privacy policy: https://visiomultimedia.com/en/extensions-privacy-policy/#calendar-liberator
 
-Calendar Liberator is an independent project. It is not affiliated with, endorsed by, or sponsored by Microsoft. Outlook, Office 365 and Microsoft 365 are trademarks of Microsoft Corporation; Google Calendar is a trademark of Google LLC; Apple Calendar is a trademark of Apple Inc.
+Calendar Liberator is an independent project. It is not affiliated with, endorsed by, or sponsored by Microsoft. Outlook, Office 365 and Microsoft 365 are trademarks of Microsoft Corporation.
 ```
 
 ### Category
