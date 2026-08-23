@@ -5,7 +5,7 @@
 A browser extension that liberates your work calendar by scraping visible events and exporting them to standard ICS format—perfect for importing into iOS Calendar, Google Calendar, or any calendar application.
 
 <p>
-  <img src="assets/Calendar-Liberator_Firefox-Badge.png" alt="Get the Firefox add-on (coming soon)" width="129" height="45" />
+  <a href="https://addons.mozilla.org/en-US/firefox/addon/calendar-liberator/"><img src="assets/Calendar-Liberator_Firefox-Badge.png" alt="Get the Firefox add-on" width="129" height="45" /></a>
   <br/>
   <img src="assets/Calendar-Liberator_Chrome-Badge.png" alt="Available in the Chrome Web Store (coming soon)" width="159" height="45" />
   <br/>
@@ -50,7 +50,7 @@ A browser extension that liberates your work calendar by scraping visible events
 
 **Microsoft Edge Add-ons:** [Calendar Liberator](https://microsoftedge.microsoft.com/addons/detail/calendar-liberator/omjcoopfimlfbminglnlhmilifmfidhp)  
 **Chrome Web Store:** _(Coming soon)_  
-**Firefox Add-ons:** _(Coming soon)_
+**Firefox Add-ons:** [Calendar Liberator](https://addons.mozilla.org/en-US/firefox/addon/calendar-liberator/)
 
 ### From Source (Developer Mode)
 
