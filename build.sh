@@ -19,15 +19,22 @@ echo "Version: $VERSION"
 generate_readme() {
     local browser=$1
     local store_name=$2
-    local install_instructions=$3
-    local output_file=$4
+    local store_url=$3
+    local install_instructions=$4
+    local output_file=$5
     
     # Read template and replace placeholders
     sed -e "s|{{STORE_NAME}}|$store_name|g" \
+        -e "s|{{STORE_URL}}|$store_url|g" \
         -e "/{{INSTALL_INSTRUCTIONS}}/r /dev/stdin" \
         -e "/{{INSTALL_INSTRUCTIONS}}/d" \
         README-template.md <<< "$install_instructions" > "$output_file"
 }
+
+# Published store listings
+CHROME_URL="https://chromewebstore.google.com/detail/calendar-liberator/kbbheandepapakjjigfgcodmhmmclmpc"
+EDGE_URL="https://microsoftedge.microsoft.com/addons/detail/calendar-liberator/omjcoopfimlfbminglnlhmilifmfidhp"
+FIREFOX_URL="https://addons.mozilla.org/en-US/firefox/addon/calendar-liberator/"
 
 # Chrome installation instructions
 CHROME_INSTALL="1. Download the extension from the Chrome Web Store
@@ -126,7 +133,7 @@ add_firefox_settings() {
 echo "Creating Chrome package..."
 copy_files
 remove_non_firefox_icons
-generate_readme "chrome" "Chrome Web Store" "$CHROME_INSTALL" "$BUILD_DIR/README.md"
+generate_readme "chrome" "Chrome Web Store" "$CHROME_URL" "$CHROME_INSTALL" "$BUILD_DIR/README.md"
 cd "$BUILD_DIR"
 zip -r "../$DIST_DIR/calendar-liberator-chrome-$VERSION.zip" . -x "*.DS_Store"
 cd ..
@@ -136,7 +143,7 @@ rm -rf "$BUILD_DIR"/*
 echo "Creating Edge package..."
 copy_files
 remove_non_firefox_icons
-generate_readme "edge" "Microsoft Edge Add-ons" "$EDGE_INSTALL" "$BUILD_DIR/README.md"
+generate_readme "edge" "Microsoft Edge Add-ons" "$EDGE_URL" "$EDGE_INSTALL" "$BUILD_DIR/README.md"
 cd "$BUILD_DIR"
 zip -r "../$DIST_DIR/calendar-liberator-edge-$VERSION.zip" . -x "*.DS_Store"
 cd ..
@@ -146,7 +153,7 @@ rm -rf "$BUILD_DIR"/*
 echo "Creating Firefox package..."
 copy_files
 add_firefox_settings
-generate_readme "firefox" "Firefox Add-ons" "$FIREFOX_INSTALL" "$BUILD_DIR/README.md"
+generate_readme "firefox" "Firefox Add-ons" "$FIREFOX_URL" "$FIREFOX_INSTALL" "$BUILD_DIR/README.md"
 cd "$BUILD_DIR"
 zip -r "../$DIST_DIR/calendar-liberator-firefox-$VERSION.zip" . -x "*.DS_Store"
 cd ..

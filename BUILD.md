@@ -18,13 +18,14 @@ The version number is read automatically from `manifest.json`.
 ## What the Build Does
 
 1. Copies the extension files (`manifest.json`, `popup.*`, `content.js`, `ics-generator.js`, `LICENSE`, `icon-*.png`, `fonts/`) into a clean build directory.
-2. Generates a **browser-specific README** from `README-template.md`, replacing two placeholders:
+2. Generates a **browser-specific README** from `README-template.md`, replacing three placeholders:
    - `{{STORE_NAME}}` — store name shown in the installation section
+   - `{{STORE_URL}}` — link to that store's published listing (defined as `*_URL` variables in `build.sh`)
    - `{{INSTALL_INSTRUCTIONS}}` — per-browser installation steps (defined as variables in `build.sh`)
 3. For **Firefox only**, adds the 96px icon and injects `browser_specific_settings.gecko` (add-on ID and `strict_min_version`) into the manifest — required by Firefox for Manifest V3 extensions. Chrome and Edge packages use the manifest as-is.
 4. Zips each package into `dist/` and cleans up.
 
-To change the store README content, edit `README-template.md` (keeping the two placeholders). To change installation steps, edit the `*_INSTALL` variables in `build.sh`.
+To change the store README content, edit `README-template.md` (keeping the three placeholders). To change installation steps, edit the `*_INSTALL` variables in `build.sh`; to change the listing links, edit the `*_URL` variables.
 
 ## Verifying a Build
 
@@ -52,6 +53,12 @@ sizes are ever needed (e.g. the 300x300 Edge store icon).
 Test a full export on a real Outlook calendar in each browser before submitting.
 
 ## Publishing
+
+All three listings are live:
+
+- **Chrome Web Store:** https://chromewebstore.google.com/detail/calendar-liberator/kbbheandepapakjjigfgcodmhmmclmpc
+- **Microsoft Edge Add-ons:** https://microsoftedge.microsoft.com/addons/detail/calendar-liberator/omjcoopfimlfbminglnlhmilifmfidhp
+- **Firefox Add-ons:** https://addons.mozilla.org/en-US/firefox/addon/calendar-liberator/
 
 ### Chrome Web Store
 1. Go to the [Chrome Web Store Developer Dashboard](https://chrome.google.com/webstore/devconsole)

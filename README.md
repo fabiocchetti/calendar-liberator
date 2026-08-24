@@ -7,7 +7,7 @@ A browser extension that liberates your work calendar by scraping visible events
 <p>
   <a href="https://addons.mozilla.org/en-US/firefox/addon/calendar-liberator/"><img src="assets/Calendar-Liberator_Firefox-Badge.png" alt="Get the Firefox add-on" width="129" height="45" /></a>
   <br/>
-  <img src="assets/Calendar-Liberator_Chrome-Badge.png" alt="Available in the Chrome Web Store (coming soon)" width="159" height="45" />
+  <a href="https://chromewebstore.google.com/detail/calendar-liberator/kbbheandepapakjjigfgcodmhmmclmpc"><img src="assets/Calendar-Liberator_Chrome-Badge.png" alt="Available in the Chrome Web Store" width="159" height="45" /></a>
   <br/>
   <a href="https://microsoftedge.microsoft.com/addons/detail/calendar-liberator/omjcoopfimlfbminglnlhmilifmfidhp"><img src="assets/Calendar-Liberator_Edge-Badge.png" alt="Get it on Microsoft Edge Add-ons" width="151" height="45" /></a>
 </p>
@@ -49,7 +49,7 @@ A browser extension that liberates your work calendar by scraping visible events
 ### From Extension Stores
 
 **Microsoft Edge Add-ons:** [Calendar Liberator](https://microsoftedge.microsoft.com/addons/detail/calendar-liberator/omjcoopfimlfbminglnlhmilifmfidhp)  
-**Chrome Web Store:** _(Coming soon)_  
+**Chrome Web Store:** [Calendar Liberator](https://chromewebstore.google.com/detail/calendar-liberator/kbbheandepapakjjigfgcodmhmmclmpc)  
 **Firefox Add-ons:** [Calendar Liberator](https://addons.mozilla.org/en-US/firefox/addon/calendar-liberator/)
 
 ### From Source (Developer Mode)

@@ -29,7 +29,7 @@
 ## Installation
 
 ### From {{STORE_NAME}}
-_(Coming soon - extension pending review)_
+[Calendar Liberator]({{STORE_URL}})
 
 ### Manual Installation (Developer Mode)
 
