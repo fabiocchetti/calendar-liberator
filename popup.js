@@ -12,19 +12,12 @@ class CalendarLiberatorPopup {
         this.includeDeclinedCheckbox = document.getElementById('includeDeclined');
         this.includeOOOCheckbox = document.getElementById('includeOOO');
         this.errorText = document.getElementById('errorText');
-        this.openOutlookLink = document.getElementById('openOutlook');
 
         this.init();
     }
 
     init() {
         this.exportButton.addEventListener('click', () => this.startExport());
-
-        this.openOutlookLink.addEventListener('click', (event) => {
-            event.preventDefault();
-            chrome.tabs.create({ url: 'https://outlook.office.com/calendar' });
-            window.close();
-        });
 
         // Any change to the options resets the button to its initial state
         const resetButton = () => this.setButtonLabel('Export .ics');
@@ -103,6 +96,9 @@ class CalendarLiberatorPopup {
                 hostname.includes('outlook.office.com') ||
                 hostname.endsWith('office.com') ||
                 hostname.includes('outlook.com') ||
+                // New M365 domain: match the exact host, never *.cloud.microsoft,
+                // which would also cover Teams, OneDrive, Word and the rest.
+                hostname === 'outlook.cloud.microsoft' ||
                 (hostname.endsWith('mcas.ms') && hostname.includes('outlook'))
             );
         } catch (err) {

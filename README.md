@@ -33,7 +33,7 @@ A browser extension that liberates your work calendar by scraping visible events
 
 ## Features
 
-- **Universal Compatibility** — Works with all Outlook/Office domains (outlook.office.com, office.com, outlook.com, MCAS proxies)
+- **Universal Compatibility** — Works with all Outlook/Office domains (outlook.cloud.microsoft, outlook.office.com, office.com, outlook.com, MCAS proxies)
 - **28-Day Window** — Exports exactly 28 days of events (7 days back from today + 21 days forward)
 - **User-Controlled Export** — Choose timezone and filter declined/out-of-office events
 - **Complete Event Data** — Captures titles, times, dates, organizers, locations, recurring patterns, meeting types
@@ -194,15 +194,13 @@ Making that a one-click option inside the extension is the main item on the
 
 ## Roadmap & To Do
 
-Highest priority first. Last reviewed 2026-08-20, against v1.1.1.
+Highest priority first. Last reviewed 2026-08-31, against v1.2.0.
 
-**1. Support `outlook.cloud.microsoft` — breaking.** Microsoft is moving M365 web apps to the `cloud.microsoft` domain ([details](https://support.microsoft.com/en-US/Office/what-is-cloud-microsoft)). Legacy URLs only redirect for now; when that stops, the extension silently reports "not an Outlook page". Add `*://outlook.cloud.microsoft/*` to `host_permissions` and `content_scripts[0].matches` — the exact host, not `*://*.cloud.microsoft/*`, which would cover all of Teams/OneDrive/Word. Then update the host check in `validateOutlookPage()` (`content.js`) and its duplicate in `popup.js`, plus the domain lists in `BUILD.md` and this README. Note `manifest.json` already has the MCAS *proxy* of the new domain, but not the domain itself.
+**1. Drop the unused `*.live.com` permission.** Neither validator ever accepts a `live.com` host (`outlook.live.com` doesn't contain `outlook.com`), so it's dead — and broad enough to risk store rejection. The `BUILD.md` "WORKS WITH" list already omits it while the permission justification still claims it, so manifest, listing and justification disagree. Decide first whether to *support* consumer Outlook instead: if yes, narrow to `*://outlook.live.com/*` and add it to both validators; if no, delete both entries.
 
-**2. Drop the unused `*.live.com` permission.** Neither validator ever accepts a `live.com` host (`outlook.live.com` doesn't contain `outlook.com`), so it's dead — and broad enough to risk store rejection. The `BUILD.md` justification already omits it, so manifest and justification disagree. Decide first whether to *support* consumer Outlook instead: if yes, narrow to `*://outlook.live.com/*` and add it to both validators; if no, delete both entries.
+**2. Hosted, auto-updating exports.** Make [self-hosting](#advanced-self-hosting-for-auto-updates) a one-click option instead of a manual re-import every run. Must stay opt-in and off by default, upload only to storage the user owns, and keep `PRIVACY.md` plus the store privacy declarations honest — they currently say no data ever leaves the device. Needs `storage` and host permissions.
 
-**3. Hosted, auto-updating exports.** Make [self-hosting](#advanced-self-hosting-for-auto-updates) a one-click option instead of a manual re-import every run. Must stay opt-in and off by default, upload only to storage the user owns, and keep `PRIVACY.md` plus the store privacy declarations honest — they currently say no data ever leaves the device. Needs `storage` and host permissions.
-
-**Lower priority:** other calendar web apps (per-site adapters); non-English Outlook (the scraper parses English `aria-label` strings); merging the duplicated host check in `content.js` and `popup.js`, which items 1 and 2 both touch.
+**Lower priority:** other calendar web apps (per-site adapters); non-English Outlook (the scraper parses English `aria-label` strings); merging the duplicated host check in `content.js` and `popup.js`, which item 1 also touches.
 
 ---
 

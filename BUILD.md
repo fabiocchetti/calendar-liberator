@@ -181,6 +181,7 @@ You pick the IANA timezone that matches the times shown in Outlook — your brow
 
 WORKS WITH
 
+• outlook.cloud.microsoft, the new Microsoft 365 domain
 • outlook.office.com and outlook.office365.com
 • outlook.com and Microsoft 365 tenants on office.com
 • Corporate MCAS / Defender for Cloud Apps proxy domains
@@ -262,7 +263,7 @@ Used only after the user clicks the extension icon and presses Export. It lets t
 
 **Host permissions (Outlook / Office 365 domains)**
 ```
-The content script that reads the calendar grid must be injected into the Outlook Web page itself. Outlook is served from several domains depending on the tenant (outlook.office.com, outlook.office365.com, office.com, outlook.com, live.com, and MCAS/Defender proxy variants), so each is listed. Access is limited to these domains; no other site is matched.
+The content script that reads the calendar grid must be injected into the Outlook Web page itself. Outlook is served from several domains depending on the tenant (outlook.cloud.microsoft, outlook.office.com, outlook.office365.com, office.com, outlook.com, live.com, and MCAS/Defender proxy variants), so each is listed. Access is limited to these domains; no other site is matched.
 ```
 
 **Single purpose (Chrome)**

@@ -17,7 +17,7 @@
 
 ## Features
 
-- **Universal Compatibility:** Works with all Outlook/Office domains (outlook.office.com, office.com, etc.)
+- **Universal Compatibility:** Works with all Outlook/Office domains (outlook.cloud.microsoft, outlook.office.com, office.com, etc.)
 - **28-Day Window:** Exports exactly 28 days of events (7 days back from today + 21 days forward)
 - **User-Selectable Timezone:** Set your displayed calendar timezone for accurate event times
 - **Intelligent Navigation:** Saves current view, switches to weekly mode, navigates systematically
@@ -217,6 +217,14 @@ Found a bug or have an improvement? Feel free to:
 3. Share feedback on compatibility with different Outlook configurations
 
 ## Changelog
+
+### Version 1.2.0
+
+**Added:**
+- Support for `outlook.cloud.microsoft`, the new Microsoft 365 domain Outlook on the web is moving to — the extension no longer reports "not an Outlook page" on migrated tenants
+
+**Improved:**
+- Clearer popup message when the current tab is not an Outlook calendar
 
 ### Version 1.1.1
 

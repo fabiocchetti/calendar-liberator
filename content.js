@@ -224,6 +224,9 @@ class CalendarLiberator {
                 hostname.includes('outlook.office.com') ||
                 hostname.endsWith('office.com') ||
                 hostname.includes('outlook.com') ||
+                // New M365 domain: match the exact host, never *.cloud.microsoft,
+                // which would also cover Teams, OneDrive, Word and the rest.
+                hostname === 'outlook.cloud.microsoft' ||
                 (hostname.endsWith('mcas.ms') && hostname.includes('outlook'))
             );
         } catch (err) {

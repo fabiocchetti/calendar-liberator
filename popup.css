@@ -248,17 +248,6 @@ select {
     margin-top: 8px;
     font-size: 13.5px;
     color: var(--muted);
-    max-width: 240px;
+    max-width: 262px;
 }
 
-.empty a {
-    margin-top: 20px;
-    font-size: 14px;
-    font-weight: 500;
-    color: var(--link);
-    text-decoration: none;
-}
-
-.empty a:hover {
-    text-decoration: underline;
-}
