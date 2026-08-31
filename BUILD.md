@@ -18,14 +18,16 @@ The version number is read automatically from `manifest.json`.
 ## What the Build Does
 
 1. Copies the extension files (`manifest.json`, `popup.*`, `content.js`, `ics-generator.js`, `LICENSE`, `icon-*.png`, `fonts/`) into a clean build directory.
-2. Generates a **browser-specific README** from `README-template.md`, replacing three placeholders:
-   - `{{STORE_NAME}}` — store name shown in the installation section
-   - `{{STORE_URL}}` — link to that store's published listing (defined as `*_URL` variables in `build.sh`)
-   - `{{INSTALL_INSTRUCTIONS}}` — per-browser installation steps (defined as variables in `build.sh`)
+2. Generates a **browser-specific README** from `README.md` — the single source of truth — by swapping three blocks delimited by `<!-- PACKAGE_*_START/END -->` comments:
+   - `PACKAGE_TITLE` — the logo, replaced by a plain `# Calendar Liberator` heading (the package ships no `assets/`)
+   - `PACKAGE_BADGES` — the store badges, dropped for the same reason
+   - `PACKAGE_INSTALL` — the installation section, replaced by the one store's listing link (`*_URL` in `build.sh`) and installation steps (`*_INSTALL` in `build.sh`)
+
+   The markers are HTML comments, so they never show up when GitHub renders `README.md`. Removing one from `README.md` fails the build rather than shipping a half-substituted README.
 3. For **Firefox only**, adds the 96px icon and injects `browser_specific_settings.gecko` (add-on ID and `strict_min_version`) into the manifest — required by Firefox for Manifest V3 extensions. Chrome and Edge packages use the manifest as-is.
 4. Zips each package into `dist/` and cleans up.
 
-To change the store README content, edit `README-template.md` (keeping the three placeholders). To change installation steps, edit the `*_INSTALL` variables in `build.sh`; to change the listing links, edit the `*_URL` variables.
+To change the store README content, edit `README.md` (keeping the three marker pairs). To change installation steps, edit the `*_INSTALL` variables in `build.sh`; to change the listing links, edit the `*_URL` variables.
 
 ## Verifying a Build
 

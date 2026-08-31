@@ -1,9 +1,12 @@
+<!-- PACKAGE_TITLE_START -->
 <img src="assets/Calendar-Liberator_Logo.png" alt="Calendar Liberator" width="440" height="97" />
+<!-- PACKAGE_TITLE_END -->
 
 **Export your Outlook calendar to ICS format in seconds. Works with any Outlook or Office 365 web domain.**
 
 A browser extension that liberates your work calendar by scraping visible events and exporting them to standard ICS format—perfect for importing into iOS Calendar, Google Calendar, or any calendar application.
 
+<!-- PACKAGE_BADGES_START -->
 <p>
   <a href="https://addons.mozilla.org/en-US/firefox/addon/calendar-liberator/"><img src="assets/Calendar-Liberator_Firefox-Badge.png" alt="Get the Firefox add-on" width="129" height="45" /></a>
   <br/>
@@ -11,6 +14,7 @@ A browser extension that liberates your work calendar by scraping visible events
   <br/>
   <a href="https://microsoftedge.microsoft.com/addons/detail/calendar-liberator/omjcoopfimlfbminglnlhmilifmfidhp"><img src="assets/Calendar-Liberator_Edge-Badge.png" alt="Get it on Microsoft Edge Add-ons" width="151" height="45" /></a>
 </p>
+<!-- PACKAGE_BADGES_END -->
 
 ---
 
@@ -44,6 +48,7 @@ A browser extension that liberates your work calendar by scraping visible events
 
 ---
 
+<!-- PACKAGE_INSTALL_START -->
 ## Installation
 
 ### From Extension Stores
@@ -73,6 +78,7 @@ A browser extension that liberates your work calendar by scraping visible events
 5. Pin the extension to your toolbar for quick access
 
 Note: Temporary Firefox add-ons are removed when Firefox restarts.
+<!-- PACKAGE_INSTALL_END -->
 
 ---
 
@@ -89,7 +95,7 @@ This generates three packages in `dist/`:
 - `calendar-liberator-edge-[version].zip` - Microsoft Edge Add-ons  
 - `calendar-liberator-firefox-[version].zip` - Firefox Add-ons
 
-Each package includes a browser-specific README with tailored installation instructions. The build script uses `README-template.md` as the source and replaces placeholders with browser-specific content.
+Each package includes a browser-specific README. The build script generates it from this file, swapping the blocks marked by `<!-- PACKAGE_* -->` HTML comments for the installation instructions of the store being built.
 
 ---
 
@@ -307,6 +313,58 @@ For issues, feature requests, or questions, please open an issue on GitHub.
 
 **Q: Can I export more than one month?**  
 A: Future versions may support automated navigation/pagination for longer ranges.
+
+---
+
+## Changelog
+
+### Version 1.2.0
+
+- Added support for outlook.cloud.microsoft.
+- Clearer message in the popup when the current tab is not an Outlook calendar.
+
+### Version 1.1.1
+
+**Fixed:**
+- Timezone selection now uses real IANA zones (e.g. Europe/London, Europe/Rome), auto-detected from the browser — fixes one-hour shifts for users whose actual offset differed from the old fixed "UTC±N"-to-representative-zone mapping
+- Account name/email detection for the exported calendar name is more robust (broader meControl selectors, full dropdown scan, additional boot-data markers)
+
+### Version 1.1.0
+
+**Improved:**
+- Event times now converted to UTC with correct per-date DST handling (fixes one-hour shifts across daylight-saving changes)
+- Corrected timezone mapping (UTC+0 = London, UTC+1 = Rome/Berlin, UTC+2 = Helsinki/Athens)
+- New flat, minimal popup design with light/dark mode support
+- Extension icons included (16/32/48/128)
+- Firefox package now includes the required `browser_specific_settings.gecko` ID
+- Semi-transparent overlay blocks accidental page interactions during export (auto-removed on completion, failure, or after 60 seconds)
+
+**Removed:**
+- Dead email-detection code paths (cookie/iframe scanning)
+- Diagnostic logging of personal data
+
+### Version 1.0.0 (Initial Release)
+
+**Features:**
+- Universal Outlook/Office 365 domain support
+- 28-day event extraction (7 days back from today + 21 days forward)
+- User-selectable timezone with auto-detection
+- Intelligent navigation with view preservation
+- Complete event data parsing (titles, times, organizers, recurrence)
+- ICS file generation with proper timezone support
+- One-click export with progress tracking
+- Privacy-first local processing
+
+**Event Filtering:**
+- Automatic filtering of declined events
+- Automatic filtering of out-of-office entries
+- Duplicate event detection across weeks
+- Enhanced organizer validation
+
+**Requirements:**
+- Outlook interface must be set to English
+- Chrome or Chromium-based browser
+- Active Outlook/Office 365 web calendar session
 
 ---
 

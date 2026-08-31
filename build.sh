@@ -16,19 +16,56 @@ mkdir -p "$BUILD_DIR" "$DIST_DIR"
 
 echo "Version: $VERSION"
 
+# Generates the README shipped inside a package from README.md, which is the
+# single source of truth. Three blocks delimited by <!-- PACKAGE_*_START/END -->
+# comments are swapped out: the logo and the store badges, which point at
+# assets/ files the package doesn't ship, and the installation section, which
+# becomes the instructions for the one store being built. The markers are HTML
+# comments, so they stay invisible when GitHub renders README.md.
 generate_readme() {
-    local browser=$1
-    local store_name=$2
-    local store_url=$3
-    local install_instructions=$4
-    local output_file=$5
-    
-    # Read template and replace placeholders
-    sed -e "s|{{STORE_NAME}}|$store_name|g" \
-        -e "s|{{STORE_URL}}|$store_url|g" \
-        -e "/{{INSTALL_INSTRUCTIONS}}/r /dev/stdin" \
-        -e "/{{INSTALL_INSTRUCTIONS}}/d" \
-        README-template.md <<< "$install_instructions" > "$output_file"
+    local store_name=$1
+    local store_url=$2
+    local install_instructions=$3
+    local output_file=$4
+
+    STORE_NAME="$store_name" \
+    STORE_URL="$store_url" \
+    INSTALL_INSTRUCTIONS="$install_instructions" \
+    OUTPUT_FILE="$output_file" \
+    node -e "
+        const fs = require('fs');
+        let readme = fs.readFileSync('README.md', 'utf8');
+
+        const replaceBlock = (name, replacement) => {
+            const start = '<!-- ' + name + '_START -->';
+            const end = '<!-- ' + name + '_END -->';
+            const from = readme.indexOf(start);
+            const to = readme.indexOf(end);
+            if (from === -1 || to === -1) {
+                console.error('  ERROR: ' + name + ' markers missing from README.md');
+                process.exit(1);
+            }
+            readme = readme.slice(0, from) + replacement + readme.slice(to + end.length);
+        };
+
+        replaceBlock('PACKAGE_TITLE', '# Calendar Liberator');
+        replaceBlock('PACKAGE_BADGES', '');
+        replaceBlock('PACKAGE_INSTALL', [
+            '## Installation',
+            '',
+            '### From ' + process.env.STORE_NAME,
+            '[Calendar Liberator](' + process.env.STORE_URL + ')',
+            '',
+            '### Manual Installation (Developer Mode)',
+            '',
+            process.env.INSTALL_INSTRUCTIONS
+        ].join('\n'));
+
+        // Removing a block leaves a gap behind
+        readme = readme.replace(/\n{3,}/g, '\n\n');
+
+        fs.writeFileSync(process.env.OUTPUT_FILE, readme);
+    "
 }
 
 # Published store listings
@@ -133,7 +170,7 @@ add_firefox_settings() {
 echo "Creating Chrome package..."
 copy_files
 remove_non_firefox_icons
-generate_readme "chrome" "Chrome Web Store" "$CHROME_URL" "$CHROME_INSTALL" "$BUILD_DIR/README.md"
+generate_readme "Chrome Web Store" "$CHROME_URL" "$CHROME_INSTALL" "$BUILD_DIR/README.md"
 cd "$BUILD_DIR"
 zip -r "../$DIST_DIR/calendar-liberator-chrome-$VERSION.zip" . -x "*.DS_Store"
 cd ..
@@ -143,7 +180,7 @@ rm -rf "$BUILD_DIR"/*
 echo "Creating Edge package..."
 copy_files
 remove_non_firefox_icons
-generate_readme "edge" "Microsoft Edge Add-ons" "$EDGE_URL" "$EDGE_INSTALL" "$BUILD_DIR/README.md"
+generate_readme "Microsoft Edge Add-ons" "$EDGE_URL" "$EDGE_INSTALL" "$BUILD_DIR/README.md"
 cd "$BUILD_DIR"
 zip -r "../$DIST_DIR/calendar-liberator-edge-$VERSION.zip" . -x "*.DS_Store"
 cd ..
@@ -153,7 +190,7 @@ rm -rf "$BUILD_DIR"/*
 echo "Creating Firefox package..."
 copy_files
 add_firefox_settings
-generate_readme "firefox" "Firefox Add-ons" "$FIREFOX_URL" "$FIREFOX_INSTALL" "$BUILD_DIR/README.md"
+generate_readme "Firefox Add-ons" "$FIREFOX_URL" "$FIREFOX_INSTALL" "$BUILD_DIR/README.md"
 cd "$BUILD_DIR"
 zip -r "../$DIST_DIR/calendar-liberator-firefox-$VERSION.zip" . -x "*.DS_Store"
 cd ..
