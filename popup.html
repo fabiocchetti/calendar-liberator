@@ -66,7 +66,25 @@
             </label>
         </div>
 
-        <button id="exportButton" class="primary">Export .ics</button>
+        <details class="advanced" id="publishDetails">
+            <summary>Publish to a URL</summary>
+            <div class="field">
+                <label for="publishUrl">Destination URL</label>
+                <input type="text" id="publishUrl" placeholder="https://example.com/work.ics" spellcheck="false">
+            </div>
+            <div class="field">
+                <label for="publishHeader">Auth header (optional)</label>
+                <input type="text" id="publishHeader" placeholder="Authorization: Bearer …" spellcheck="false">
+            </div>
+            <p class="hint">Your calendar app subscribes to this URL. For WebDAV you can
+            inline the credentials instead: <code>https://user:pass@host/work.ics</code></p>
+        </details>
+
+        <div class="actions">
+            <button id="exportButton" class="primary">Export .ics</button>
+            <button id="publishButton" class="secondary">Publish</button>
+        </div>
+        <p id="statusText" class="status" hidden></p>
         <p id="errorText" class="error" hidden></p>
     </main>
 

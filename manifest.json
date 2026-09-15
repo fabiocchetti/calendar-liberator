@@ -9,7 +9,10 @@
     "48": "icons/icon-48.png",
     "128": "icons/icon-128.png"
   },
-  "permissions": ["activeTab"],
+  "permissions": [
+    "activeTab",
+    "storage"
+  ],
   "host_permissions": [
     "*://*.outlook.office.com/*",
     "*://*.outlook.office365.com/*",
@@ -36,10 +39,16 @@
         "*://*.outlook-sdf.office.com/*",
         "*://*.outlook-sdf.office365.com/*"
       ],
-      "js": ["ics-generator.js", "content.js"],
+      "js": [
+        "ics-generator.js",
+        "content.js"
+      ],
       "run_at": "document_idle"
     }
   ],
+  "background": {
+    "service_worker": "background.js"
+  },
   "action": {
     "default_title": "Calendar Liberator - Export Outlook Calendar",
     "default_popup": "popup.html",
@@ -51,5 +60,8 @@
     }
   },
   "author": "Fabio Biocchetti",
-  "homepage_url": "https://github.com/fabiocchetti/calendar-liberator"
+  "homepage_url": "https://github.com/fabiocchetti/calendar-liberator",
+  "optional_host_permissions": [
+    "*://*/*"
+  ]
 }

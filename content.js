@@ -39,6 +39,7 @@ class CalendarLiberator {
                     this.calendarName = message.calendarName || null;
                     this.includeDeclined = message.includeDeclined || false;
                     this.includeOOO = message.includeOOO || false;
+                    this.destination = message.destination || 'download';
                     const result = await this.exportCalendar();
                     sendResponse(result);
                     break;
@@ -140,8 +141,9 @@ class CalendarLiberator {
             this.sendProgress('Generating ICS file...', 85);
             const icsContent = this.generateICS();
             
-            this.sendProgress('Downloading file...', 90);
-            this.downloadICS(icsContent);
+            const publishing = this.destination === 'publish';
+            this.sendProgress(publishing ? 'Publishing file...' : 'Downloading file...', 90);
+            const delivery = await this.deliverICS(icsContent);
             
             this.sendProgress('Restoring original view...', 95);
             await this.restoreOriginalView();
@@ -157,7 +159,8 @@ class CalendarLiberator {
             return { 
                 success: true, 
                 eventCount: this.allEvents.length,
-                message: `Successfully exported ${this.allEvents.length} events!`
+                message: `Successfully exported ${this.allEvents.length} events!`,
+                ...delivery
             };
             
         } catch (error) {
@@ -990,6 +993,32 @@ class CalendarLiberator {
         // if it is not found, log quietly and never surface it as an error
         console.log('[CalendarLiberator] Could not detect user email');
         return null;
+    }
+
+    // Hands the finished calendar to its destination. Publishing can fail for
+    // reasons that only surface after a multi-minute scrape (wrong URL, expired
+    // token, endpoint down), so a failure always falls back to the local
+    // download: the run is never thrown away, and the popup reports both.
+    async deliverICS(icsContent) {
+        if (this.destination !== 'publish') {
+            this.downloadICS(icsContent);
+            return { delivery: 'downloaded' };
+        }
+
+        try {
+            const response = await chrome.runtime.sendMessage({
+                action: 'publishICS',
+                ics: icsContent
+            });
+
+            if (response && response.success) {
+                return { delivery: 'published' };
+            }
+            throw new Error(response?.error || 'upload failed');
+        } catch (error) {
+            this.downloadICS(icsContent);
+            return { delivery: 'downloaded', publishError: error.message };
+        }
     }
 
     downloadICS(icsContent) {

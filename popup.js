@@ -12,27 +12,41 @@ class CalendarLiberatorPopup {
         this.includeDeclinedCheckbox = document.getElementById('includeDeclined');
         this.includeOOOCheckbox = document.getElementById('includeOOO');
         this.errorText = document.getElementById('errorText');
+        this.publishButton = document.getElementById('publishButton');
+        this.publishDetails = document.getElementById('publishDetails');
+        this.publishUrlInput = document.getElementById('publishUrl');
+        this.publishHeaderInput = document.getElementById('publishHeader');
+        this.statusText = document.getElementById('statusText');
 
         this.init();
     }
 
     init() {
-        this.exportButton.addEventListener('click', () => this.startExport());
+        this.exportButton.addEventListener('click', () => this.startExport('download'));
+        this.publishButton.addEventListener('click', () => this.startExport('publish'));
 
-        // Any change to the options resets the button to its initial state
-        const resetButton = () => this.setButtonLabel('Export .ics');
-        this.calendarNameInput.addEventListener('input', resetButton);
-        this.timezoneSelect.addEventListener('change', resetButton);
-        this.includeDeclinedCheckbox.addEventListener('change', resetButton);
-        this.includeOOOCheckbox.addEventListener('change', resetButton);
+        // Any change to the options clears the result of the previous run
+        const clear = () => { this.hideStatus(); this.hideError(); };
+        this.calendarNameInput.addEventListener('input', clear);
+        this.timezoneSelect.addEventListener('change', clear);
+        this.includeDeclinedCheckbox.addEventListener('change', clear);
+        this.includeOOOCheckbox.addEventListener('change', clear);
+
+        const onTargetEdited = () => {
+            clear();
+            this.savePublishTarget();
+        };
+        this.publishUrlInput.addEventListener('input', onTargetEdited);
+        this.publishHeaderInput.addEventListener('input', onTargetEdited);
 
         // Progress updates from the content script (registered once)
         chrome.runtime.onMessage.addListener((message) => {
             if (message.action === 'exportProgress') {
-                this.setButtonLabel(`Exporting… ${message.progress}%`);
+                this.showStatus(`Exporting… ${message.progress}%`);
             }
         });
 
+        this.loadPublishTarget();
         this.initTimezoneLabels();
         this.detectUserTimezone();
         this.checkOutlookPage();
@@ -130,30 +144,97 @@ class CalendarLiberatorPopup {
         this.emptyState.hidden = false;
     }
 
-    async startExport() {
+    // The destination is remembered so it survives the popup closing, which it
+    // does every time the user clicks away. Kept in storage.local, never
+    // storage.sync: sync would ship the user's endpoint credentials to Google.
+    async loadPublishTarget() {
+        try {
+            const stored = await chrome.storage.local.get('publishTarget');
+            const target = stored.publishTarget;
+            if (!target || !target.url) return;
+
+            this.publishUrlInput.value = target.url;
+            this.publishHeaderInput.value = target.header || '';
+            this.publishDetails.open = true;
+        } catch (error) {
+            // Fail silently: publishing simply stays unconfigured
+        }
+    }
+
+    savePublishTarget() {
+        const target = {
+            url: this.publishUrlInput.value.trim(),
+            header: this.publishHeaderInput.value.trim()
+        };
+        chrome.storage.local.set({ publishTarget: target }).catch(() => {});
+    }
+
+    // Host access for an arbitrary endpoint is optional and requested only here,
+    // on the click itself: an install that never publishes never grants it.
+    //
+    // This must be the first await in the click handler. permissions.request()
+    // needs a live user gesture, and any await before it — including a
+    // permissions.contains() pre-check — spends the gesture and makes the call
+    // throw. Requesting an already-granted origin just resolves true without
+    // prompting, so the pre-check bought nothing anyway.
+    async ensureDestinationPermission(rawUrl) {
+        let origin;
+        try {
+            origin = new URL(rawUrl).origin + '/*';
+        } catch (error) {
+            throw new Error('That destination URL is not valid.');
+        }
+
+        let granted;
+        try {
+            granted = await chrome.permissions.request({ origins: [origin] });
+        } catch (error) {
+            throw new Error(`Could not request access to that host: ${error.message}`);
+        }
+
+        if (!granted) {
+            throw new Error('Access to that destination was denied.');
+        }
+    }
+
+    async startExport(destination = 'download') {
         const selectedTimezone = this.timezoneSelect.value;
         const calendarName = this.calendarNameInput.value.trim();
         const includeDeclined = this.includeDeclinedCheckbox.checked;
         const includeOOO = this.includeOOOCheckbox.checked;
 
         try {
-            this.exportButton.disabled = true;
             this.hideError();
-            this.setButtonLabel('Exporting…');
+            this.hideStatus();
+
+            if (destination === 'publish') {
+                const url = this.publishUrlInput.value.trim();
+                if (!url) {
+                    this.publishDetails.open = true;
+                    this.showError('Add a destination URL first.');
+                    return;
+                }
+                // Granting can close the popup; the next click finds it granted
+                await this.ensureDestinationPermission(url);
+            }
+
+            this.setButtonDisabled(true);
+            this.showStatus('Exporting…');
 
             const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
 
             chrome.tabs.sendMessage(tab.id, {
                 action: 'exportCalendar',
+                destination: destination,
                 timezone: selectedTimezone,
                 calendarName: calendarName || null,
                 includeDeclined: includeDeclined,
                 includeOOO: includeOOO
             }, (response) => {
-                this.exportButton.disabled = false;
+                this.setButtonDisabled(false);
 
                 if (chrome.runtime.lastError) {
-                    this.setButtonLabel('Export .ics');
+                    this.hideStatus();
                     this.showError('Failed to communicate with the page. Please refresh and try again.');
                     return;
                 }
@@ -161,22 +242,43 @@ class CalendarLiberatorPopup {
                 if (response && response.success) {
                     const count = response.eventCount;
                     const label = count === 1 ? '1 event' : `${count} events`;
-                    this.setButtonLabel(`Export .ics — ${label}`);
+
+                    if (response.delivery === 'published') {
+                        this.showStatus(`Published ${label}.`);
+                    } else {
+                        this.showStatus(`Downloaded ${label}.`);
+                    }
+
+                    // The scrape succeeded but the upload did not: the file was
+                    // downloaded instead, so the run is not lost. Say both.
+                    if (response.publishError) {
+                        this.showError(`Publish failed — ${response.publishError}`);
+                    }
                 } else {
-                    this.setButtonLabel('Export .ics');
+                    this.hideStatus();
                     this.showError(response?.error || 'Export failed.');
                 }
             });
 
         } catch (error) {
-            this.exportButton.disabled = false;
-            this.setButtonLabel('Export .ics');
-            this.showError(`Export failed: ${error.message}`);
+            this.setButtonDisabled(false);
+            this.hideStatus();
+            this.showError(error.message);
         }
     }
 
-    setButtonLabel(text) {
-        this.exportButton.textContent = text;
+    setButtonDisabled(disabled) {
+        this.exportButton.disabled = disabled;
+        this.publishButton.disabled = disabled;
+    }
+
+    showStatus(message) {
+        this.statusText.textContent = message;
+        this.statusText.hidden = false;
+    }
+
+    hideStatus() {
+        this.statusText.hidden = true;
     }
 
     showError(message) {

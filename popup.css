@@ -251,3 +251,101 @@ select {
     max-width: 262px;
 }
 
+
+/* Publish destination (collapsed unless already configured) */
+.advanced {
+    border-top: 1px solid var(--border);
+    padding-top: 16px;
+}
+
+.advanced summary {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--muted);
+    cursor: pointer;
+    user-select: none;
+    list-style: none;
+}
+
+.advanced summary::-webkit-details-marker {
+    display: none;
+}
+
+.advanced summary::before {
+    content: "+";
+    display: inline-block;
+    width: 12px;
+    font-size: 13px;
+}
+
+.advanced[open] summary::before {
+    content: "−";
+}
+
+.advanced[open] summary {
+    margin-bottom: 16px;
+}
+
+.advanced .field + .field {
+    margin-top: 14px;
+}
+
+.hint {
+    margin-top: 10px;
+    font-size: 11.5px;
+    line-height: 1.4;
+    color: var(--muted);
+}
+
+.hint code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 11px;
+    word-break: break-all;
+}
+
+/* Action pair */
+.actions {
+    display: flex;
+    gap: 10px;
+}
+
+.actions .primary {
+    flex: 1 1 auto;
+}
+
+.secondary {
+    flex: 0 0 auto;
+    background: var(--surface);
+    color: var(--text);
+    border: 1px solid var(--border);
+    padding: 13px 18px;
+    border-radius: 9px;
+    font-size: 15px;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+}
+
+.secondary:hover:not(:disabled) {
+    border-color: var(--border-hover);
+}
+
+.secondary:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+/* Progress and result. Lives here rather than on the buttons: a label that
+   grows with its own content resizes the control it sits in. */
+.status {
+    font-size: 12.5px;
+    color: var(--muted);
+    text-align: center;
+}
+
+.status[hidden],
+.error[hidden] {
+    display: none;
+}
