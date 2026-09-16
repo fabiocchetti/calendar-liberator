@@ -522,7 +522,7 @@ A: Future versions may support automated navigation/pagination for longer ranges
 
 ## Changelog
 
-### Unreleased
+### Version 1.3.0
 
 **Added:**
 - Optional publishing: the export can be uploaded to a URL you own, so calendar apps subscribe and refresh themselves instead of importing by hand — see [Publishing to a URL](#publishing-to-a-url)
