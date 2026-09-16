@@ -314,7 +314,10 @@ file_put_contents(__DIR__ . '/work.ics', file_get_contents('php://input'));
 ### Option 2 — Cloudflare Workers and R2
 
 Free for this purpose, and the file stays in storage you control. This repo
-ships the endpoint in [`worker/`](worker/); what follows is the whole setup.
+ships a reference endpoint in
+[`examples/publishing-endpoint/`](examples/publishing-endpoint/) — it is an
+example you deploy to your own account, not part of the extension. What follows
+is the whole setup.
 
 **You need** a Cloudflare account, an R2 bucket, and `wrangler`:
 
@@ -326,19 +329,23 @@ npm install -g wrangler
 > skipped, ignore it. Both ship their binary as a prebuilt optional dependency
 > and the script is only a fallback. Check with `wrangler --version`.
 
-**Every command below runs from inside the `worker/` directory.** Run them from
-the repository root and wrangler will say *"Required Worker name missing"*,
-because that is where `wrangler.toml` lives.
+**Every command below runs from inside `examples/publishing-endpoint/`.** Run
+them from the repository root and wrangler will say *"Required Worker name
+missing"*, because that is where the config lives.
 
 ```bash
-cd worker
+cd examples/publishing-endpoint
+cp wrangler.toml.example wrangler.toml
 wrangler login
 ```
 
-**1. Point the config at your bucket.** In `wrangler.toml`, replace
-`REPLACE_WITH_YOUR_BUCKET_NAME` with the real name — `wrangler r2 bucket list`
-prints it. To keep the calendar separate from anything else you store, create a
-bucket for it first:
+`wrangler.toml` is gitignored — it describes *your* deployment and should never
+be committed. Only the `.example` template is tracked.
+
+**1. Point the config at your bucket.** In the `wrangler.toml` you just copied,
+replace `YOUR_BUCKET_NAME` with the real name — `wrangler r2 bucket list` prints
+it. To keep the calendar separate from anything else you store, create a bucket
+for it first:
 
 ```bash
 wrangler r2 bucket create calendar-liberator
@@ -443,7 +450,7 @@ wrangler secret put READ_PATH
 
 | What you see | What it means |
 |---|---|
-| `Required Worker name missing` | You are not in the `worker/` directory. |
+| `Required Worker name missing` | You are not in `examples/publishing-endpoint/`, or you have not copied `wrangler.toml.example` to `wrangler.toml` yet. |
 | The popup downloads the file instead of publishing | The upload failed and the extension fell back so the export is not wasted. The red line under the button says why. |
 | `destination replied 404` | The URL or the token does not match what the Worker expects — most often the read secret was pasted where the write one belongs, or a `<PLACEHOLDER>` was left in literally. |
 | `could not reach the destination` | Host access was not granted, or the address is wrong. |
@@ -475,7 +482,7 @@ calendar-liberator/
 ├── fonts/                 # Space Grotesk 600 (wordmark, bundled locally)
 ├── assets/                # Brand sources, store screenshots and promo tile — not shipped
 ├── test/                  # ICS generator tests
-├── worker/                # Reference publishing endpoint (Cloudflare Worker + R2)
+├── examples/              # Reference publishing endpoint (Cloudflare Worker + R2)
 ├── LICENSE                # MIT License
 ├── PRIVACY.md             # Privacy policy
 ├── BUILD.md               # Build & publishing guide
@@ -519,7 +526,7 @@ A: Future versions may support automated navigation/pagination for longer ranges
 
 **Added:**
 - Optional publishing: the export can be uploaded to a URL you own, so calendar apps subscribe and refresh themselves instead of importing by hand — see [Publishing to a URL](#publishing-to-a-url)
-- A reference endpoint for Cloudflare Workers + R2 in `worker/`, with the full setup walkthrough in the README
+- A reference endpoint for Cloudflare Workers + R2 in `examples/publishing-endpoint/`, with the full setup walkthrough in the README
 - Support for consumer Outlook at `outlook.live.com`, which the manifest claimed but neither host check accepted
 
 **Changed:**

@@ -72,3 +72,10 @@ june2026fixture.html
 
 # Python virtualenv (icon generation)
 .venv/
+
+# Wrangler's local cache
+.wrangler/
+
+# Personal deployment config for the reference endpoint — never committed.
+# The committed template is wrangler.toml.example.
+examples/publishing-endpoint/wrangler.toml

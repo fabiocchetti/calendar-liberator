@@ -1,0 +1,17 @@
+# Copy this file to wrangler.toml and fill in your own values.
+# wrangler.toml is gitignored: it holds your deployment, not the example.
+
+name = "calendar-liberator"
+main = "worker.js"
+compatibility_date = "2026-09-01"
+
+workers_dev = true
+# Per-version preview URLs would expose the same code and secrets on extra
+# hostnames for no benefit here.
+preview_urls = false
+
+[[r2_buckets]]
+binding = "CAL"
+bucket_name = "YOUR_BUCKET_NAME"
+
+# UPLOAD_TOKEN and READ_PATH are secrets, set with `wrangler secret put`.
