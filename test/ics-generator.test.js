@@ -105,4 +105,25 @@ const baseEvent = {
     console.log('✓ dtstamp');
 }
 
+// --- STATUS and TRANSP ------------------------------------------------------
+{
+    const ics = new ICSGenerator('Europe/Rome').generate([baseEvent]);
+    assert.strictEqual((ics.match(/STATUS:/g) || []).length, 1, 'STATUS appears once');
+    assert.ok(ics.includes('STATUS:CONFIRMED'), 'busy event is CONFIRMED');
+    assert.ok(ics.includes('TRANSP:OPAQUE'), 'busy event blocks time');
+    assert.ok(!/STATUS:(BUSY|FREE)/.test(ics), 'BUSY/FREE are not valid STATUS values');
+
+    const tentative = { ...baseEvent, status: 'TENTATIVE' };
+    const ics2 = new ICSGenerator('Europe/Rome').generate([tentative]);
+    assert.strictEqual((ics2.match(/STATUS:/g) || []).length, 1, 'STATUS appears once when tentative');
+    assert.ok(ics2.includes('STATUS:TENTATIVE'), 'tentative event is TENTATIVE');
+    assert.ok(ics2.includes('TRANSP:TRANSPARENT'), 'tentative event does not block time');
+
+    const free = { ...baseEvent, status: 'FREE' };
+    const ics3 = new ICSGenerator('Europe/Rome').generate([free]);
+    assert.ok(ics3.includes('STATUS:CONFIRMED'), 'free event is still CONFIRMED');
+    assert.ok(ics3.includes('TRANSP:TRANSPARENT'), 'free event does not block time');
+    console.log('✓ status and transparency');
+}
+
 console.log('\nAll tests passed.');

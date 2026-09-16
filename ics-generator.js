@@ -99,16 +99,16 @@ class ICSGenerator {
             lines.push(`LOCATION:${this.escapeText(event.location)}`);
         }
         
-        if (event.status) {
-            lines.push(`STATUS:${event.status}`);
-            if (event.status === 'BUSY') {
-                lines.push(`TRANSP:OPAQUE`);
-            } else if (event.status === 'FREE') {
-                lines.push(`TRANSP:TRANSPARENT`);
-            } else if (event.status === 'TENTATIVE') {
-                lines.push(`TRANSP:OPAQUE`);
-                lines.push(`STATUS:TENTATIVE`);
-            }
+        // STATUS only ever carries TENTATIVE/CONFIRMED/CANCELLED in iCalendar;
+        // whether an event blocks time is TRANSP's job, not STATUS's. Outlook
+        // marks both "answered tentative" and "never answered" as Tentative,
+        // and neither should occupy the user's day.
+        if (event.status === 'TENTATIVE') {
+            lines.push(`STATUS:TENTATIVE`);
+            lines.push(`TRANSP:TRANSPARENT`);
+        } else if (event.status) {
+            lines.push(`STATUS:CONFIRMED`);
+            lines.push(event.status === 'FREE' ? `TRANSP:TRANSPARENT` : `TRANSP:OPAQUE`);
         }
         
         if (event.isRecurring) {

@@ -1,17 +1,21 @@
 // Calendar Liberator — publishing endpoint
 //
-// Two unguessable paths, one per direction, so the subscription URL that ends
-// up pasted into calendar apps can never be used to overwrite the calendar:
-//   PUT /<WRITE_PATH>  — only the extension knows this one
-//   GET /<READ_PATH>   — the URL you give your calendar app
+// Writing is authenticated with a bearer token, so the destination URL has the
+// same shape here as for any other service. Reading cannot be authenticated —
+// a calendar app has no way to log in — so the read path is an unguessable
+// secret instead, and it is deliberately not the same secret as the token.
 
 const OBJECT_KEY = 'calendar.ics';
+const WRITE_PATH = 'calendar.ics';
 
 export default {
     async fetch(request, env) {
         const path = new URL(request.url).pathname.slice(1);
 
-        if (request.method === 'PUT' && path === env.WRITE_PATH) {
+        if (request.method === 'PUT' && path === WRITE_PATH) {
+            if (request.headers.get('Authorization') !== `Bearer ${env.UPLOAD_TOKEN}`) {
+                return new Response('Unauthorized\n', { status: 401 });
+            }
             // Buffered, not streamed: the R2 binding wants a known length
             await env.CAL.put(OBJECT_KEY, await request.arrayBuffer());
             return new Response('Published\n');
@@ -33,7 +37,7 @@ export default {
             });
         }
 
-        // Same answer for a wrong secret and a wrong path: nothing to probe
+        // Same answer for a wrong read secret and a wrong path: nothing to probe
         return new Response('Not found\n', { status: 404 });
     }
 };

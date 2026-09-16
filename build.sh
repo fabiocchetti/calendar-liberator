@@ -118,6 +118,7 @@ FILES=(
     "popup.js"
     "content.js"
     "ics-generator.js"
+    "host-check.js"
     "background.js"
     "LICENSE"
     "icons"
@@ -157,10 +158,12 @@ add_firefox_settings() {
                 id: 'calendar-liberator@fabiocchetti.dev',
                 // 128 is the first release with optional_host_permissions
                 strict_min_version: '128.0',
-                // REVIEW BEFORE THE NEXT SUBMISSION: true only for the default
-                // flow — a configured publish destination does upload data
+                // Nothing is collected by default; publishing uploads the
+                // calendar to a destination the user configures. VERIFY the
+                // category against AMO's current list before submitting.
                 data_collection_permissions: {
-                    required: ['none']
+                    required: ['none'],
+                    optional: ['websiteContent']
                 }
             }
         };

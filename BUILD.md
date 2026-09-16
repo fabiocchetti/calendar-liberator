@@ -146,16 +146,21 @@ WHY CALENDAR LIBERATOR
 
 Many companies will only sync your work calendar to your phone if you enroll the device in their mobile device management (Intune/MDM), which means handing over a degree of control of a personal device and granting access to your entire Microsoft account. If you would rather not do that, the usual alternatives are retyping every meeting by hand, or going without.
 
-Calendar Liberator takes a third road. It asks for no password, connects to no Microsoft API, registers no OAuth application, and runs no server. It reads the calendar you are already looking at, in the browser session you have already signed into, and writes it to a file on your own disk. Nothing leaves your computer.
+Calendar Liberator takes a third road. It asks for no password, connects to no Microsoft API, registers no OAuth application, and runs no server. It reads the calendar you are already looking at, in the browser session you have already signed into, and writes it to a file on your own disk. Nothing leaves your computer unless you choose to publish it somewhere yourself.
+
+READ-ONLY, NEVER A TWO-WAY SYNC
+
+The extension reads your Outlook calendar and writes a file. Nothing is ever written back to Outlook. A calendar you subscribe to is read-only in every calendar app, so accepting an invitation, moving a meeting or replying to an organiser remain possible only in Outlook. This is a one-way export, not a synchronisation.
 
 HOW IT WORKS
 
 1. Open your calendar in Outlook on the web and sign in as you normally would.
 2. Click the Calendar Liberator icon in the toolbar.
 3. Check the calendar name and timezone (both auto-detected) and decide whether to include declined and out-of-office events.
-4. Click "Export .ics".
-5. The extension walks through a 28-day window — 7 days back and 21 days ahead — in week view, collects the events it can see, then restores your original view and returns to today.
-6. Import the downloaded .ics file into whichever calendar app you use.
+4. Choose where the result goes: download the file, or publish it to a URL you own.
+5. Click "Export calendar".
+6. The extension walks through a 28-day window — 7 days back and 21 days ahead — in week view, collects the events it can see, then restores your original view and returns to today.
+7. Import the downloaded .ics file into whichever calendar app you use — or, if you published it, subscribe your calendar app to the URL once and it refreshes by itself from then on.
 
 WHAT GETS EXPORTED
 
@@ -170,11 +175,12 @@ And nothing else. No attendee lists, no invitation bodies or meeting notes, no a
 
 PRIVACY BY DESIGN
 
-• No data collection of any kind
-• No external network requests: no backend, no analytics, no telemetry, no ads
+• No data collection of any kind: no backend, no analytics, no telemetry, no ads
 • No accounts, no credentials, no OAuth tokens
-• Nothing is written to storage — the events exist only in memory during the export, then become the file you download
-• Permissions limited to activeTab plus host access to Outlook and Office 365 domains. The extension cannot see any other website
+• By default the extension makes no network requests whatsoever
+• Optional publishing uploads the file to an address you configure and control. There is no service of ours in the middle, and the author receives no copy of anything. If you never set a destination, nothing is ever transmitted
+• The only thing stored on your device is the destination you typed and the result of the last upload. It is kept local and never synced to your browser account
+• Permissions limited to activeTab and storage, plus host access to Outlook and Office 365 domains — and, only if you publish, to the destination you chose. The extension cannot see any other website
 • Fully open source under the MIT license, so every claim above can be verified line by line
 
 TIMEZONES DONE PROPERLY
@@ -185,7 +191,7 @@ WORKS WITH
 
 • outlook.cloud.microsoft, the new Microsoft 365 domain
 • outlook.office.com and outlook.office365.com
-• outlook.com and Microsoft 365 tenants on office.com
+• outlook.com, outlook.live.com and Microsoft 365 tenants on office.com
 • Corporate MCAS / Defender for Cloud Apps proxy domains
 • Desktop Chromium browsers and Firefox
 
@@ -205,9 +211,9 @@ GOOD TO KNOW
 
 • The Outlook interface must be set to English.
 • The export covers 28 days (7 back, 21 ahead), not your whole calendar history.
-• The .ics is a snapshot, not a live subscription: run the export again whenever you want fresh data. Advanced users can host the file themselves for automatic refresh — the GitHub README explains how.
+• A downloaded .ics is a snapshot, not a live subscription: run the export again whenever you want fresh data. Alternatively, publish it to an address you own and subscribe your calendar app to it, so one click updates every device. Setting that up requires somewhere to publish to — the GitHub README walks through it.
 • The extension reads Outlook's web interface, so a major redesign by Microsoft can break it until an update ships.
-• It is read-only. It can never create, edit or delete anything in your Outlook calendar.
+• It is read-only and one-way. It can never create, edit or delete anything in your Outlook calendar, and a subscribed calendar cannot be edited either.
 • Always check the imported result before relying on it for something important.
 
 OPEN SOURCE
@@ -265,17 +271,30 @@ Used only after the user clicks the extension icon and presses Export. It lets t
 
 **Host permissions (Outlook / Office 365 domains)**
 ```
-The content script that reads the calendar grid must be injected into the Outlook Web page itself. Outlook is served from several domains depending on the tenant (outlook.cloud.microsoft, outlook.office.com, outlook.office365.com, office.com, outlook.com, live.com, and MCAS/Defender proxy variants), so each is listed. Access is limited to these domains; no other site is matched.
+The content script that reads the calendar grid must be injected into the Outlook Web page itself. Outlook is served from several domains depending on the tenant (outlook.cloud.microsoft, outlook.office.com, outlook.office365.com, office.com, outlook.com, outlook.live.com, and MCAS/Defender proxy variants), so each is listed. Access is limited to these domains; no other site is matched.
+```
+
+**storage**
+```
+Stores the optional publishing settings the user types into the popup: the destination URL and an optional authentication header, plus the result of the last upload so the popup can report it. Deliberately storage.local rather than storage.sync, so the user's endpoint credentials are never copied off the device. No calendar data is stored.
+```
+
+**Optional host permissions (`*://*/*`)**
+```
+Requested at runtime, and only for the single origin the user enters as a publishing destination — never at install time and never broadly. Publishing is off by default; a user who only downloads the .ics is never asked and grants nothing. The permission is required because the upload is an HTTP PUT to an arbitrary address the extension cannot know in advance.
 ```
 
 **Single purpose (Chrome)**
 ```
-Export the events displayed in the user's Outlook Web calendar to a standard .ics file downloaded to the user's device.
+Export the events displayed in the user's Outlook Web calendar to a standard .ics file, either downloaded to the user's device or uploaded to a destination the user configures.
 ```
 
 **Data usage disclosures (Chrome "Privacy practices" tab)**
-Tick nothing in the data-collection matrix, then confirm all three statements:
-no sale of data, no use unrelated to the single purpose, no use for
+Publishing transmits calendar content to a user-chosen server, so this can no
+longer be left blank: declare the handling of personal communications /
+website content, and state that the transfer happens only to an endpoint the
+user configures, with no third party involved. Then confirm all three
+statements: no sale of data, no use unrelated to the single purpose, no use for
 creditworthiness or lending. Privacy policy URL:
 https://visiomultimedia.com/en/extensions-privacy-policy/#calendar-liberator
 
@@ -285,9 +304,13 @@ Reviewers usually have no corporate Outlook account, so tell them how to test
 and what to expect:
 
 ```
-Testing the extension requires a signed-in Outlook Web calendar (a free outlook.com account works). Open https://outlook.live.com/calendar with a few events in the next three weeks, click the extension icon and press "Export .ics" — the page will step through four weeks in week view and then download the file.
+Testing the extension requires a signed-in Outlook Web calendar (a free outlook.com account works). Open https://outlook.live.com/calendar with a few events in the next three weeks, click the extension icon and press "Export calendar" with the default Download destination — the page will step through four weeks in week view and then download the file. No account, endpoint or configuration of any kind is needed to review this path.
 
-The extension is unminified and has no build step: the sources in the package are exactly what runs. There are no remote scripts, no eval, and no network requests of any kind — content.js and ics-generator.js read the DOM and produce a Blob that is downloaded via an object URL. The bundled font (fonts/) is Space Grotesk, SIL Open Font License, included locally so the popup makes no external requests.
+The extension is unminified and has no build step: the sources in the package are exactly what runs. There are no remote scripts and no eval. With the default destination there are no network requests at all — content.js and ics-generator.js read the DOM and produce a Blob that is downloaded via an object URL.
+
+The second destination, "Publish to a URL", is opt-in and inert until the user types an address. It uploads the generated .ics by HTTP PUT to that address and nothing else; background.js contains the only fetch in the extension. The host permission for it is optional and requested at the click, so a reviewer who does not configure a destination will never see it asked for. There is no server, service or endpoint belonging to the author anywhere in this feature — a reference endpoint for self-hosting is published in the repository, not operated by us.
+
+The bundled font (fonts/) is Space Grotesk, SIL Open Font License, included locally so the popup makes no external requests.
 
 Source: https://github.com/fabiocchetti/calendar-liberator
 ```

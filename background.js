@@ -34,12 +34,16 @@ function buildRequest(target) {
         url.password = '';
     }
 
+    // "Name: value" is used verbatim; a bare value is taken as a bearer token,
+    // which is both the common case and what most people will type.
     if (target.header) {
         const separator = target.header.indexOf(':');
         if (separator > 0) {
             const name = target.header.slice(0, separator).trim();
             const value = target.header.slice(separator + 1).trim();
             if (name && value) headers[name] = value;
+        } else {
+            headers['Authorization'] = `Bearer ${target.header}`;
         }
     }
 

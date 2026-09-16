@@ -18,7 +18,7 @@
     "*://*.outlook.office365.com/*",
     "*://*.office.com/*",
     "*://*.outlook.com/*",
-    "*://*.live.com/*",
+    "*://outlook.live.com/*",
     "*://outlook.cloud.microsoft/*",
     "*://*.outlook.office.com.mcas.ms/*",
     "*://*.outlook.cloud.microsoft.mcas.ms/*",
@@ -32,7 +32,7 @@
         "*://*.outlook.office365.com/*",
         "*://*.office.com/*",
         "*://*.outlook.com/*",
-        "*://*.live.com/*",
+        "*://outlook.live.com/*",
         "*://outlook.cloud.microsoft/*",
         "*://*.outlook.office.com.mcas.ms/*",
         "*://*.outlook.cloud.microsoft.mcas.ms/*",
@@ -40,6 +40,7 @@
         "*://*.outlook-sdf.office365.com/*"
       ],
       "js": [
+        "host-check.js",
         "ics-generator.js",
         "content.js"
       ],

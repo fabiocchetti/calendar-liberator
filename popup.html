@@ -50,8 +50,8 @@
                     <input type="text" id="publishUrl" placeholder="https://example.com/work.ics" spellcheck="false">
                 </div>
                 <div class="field">
-                    <label for="publishHeader">Auth header (optional)</label>
-                    <input type="text" id="publishHeader" placeholder="Authorization: Bearer …" spellcheck="false">
+                    <label for="publishHeader">Auth token (optional)</label>
+                    <input type="text" id="publishHeader" placeholder="Token, or a full Name: value header" spellcheck="false">
                 </div>
                 <p class="hint">Your calendar app subscribes to this URL.</p>
             </div>
@@ -120,6 +120,7 @@
         <p>Calendar Liberator reads the events shown by Outlook on the web. Open your calendar there, then click the extension icon again.</p>
     </main>
 
+    <script src="host-check.js"></script>
     <script src="popup.js"></script>
 </body>
 </html>

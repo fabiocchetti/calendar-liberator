@@ -92,6 +92,11 @@ class CalendarLiberatorPopup {
             if (target && target.url) {
                 this.publishUrlInput.value = target.url;
                 this.publishHeaderInput.value = target.header || '';
+
+                // A configured destination is the one the user means to use;
+                // making them re-pick it on every open would be busywork.
+                const publishRadio = document.querySelector('input[name="destination"][value="publish"]');
+                if (publishRadio) publishRadio.checked = true;
             }
 
             this.describeDestination(stored.lastPublishResult);
@@ -285,16 +290,7 @@ class CalendarLiberatorPopup {
 
         let isOutlookUrl = false;
         try {
-            const { hostname } = new URL(tab.url);
-            isOutlookUrl = (
-                hostname.includes('outlook.office.com') ||
-                hostname.endsWith('office.com') ||
-                hostname.includes('outlook.com') ||
-                // New M365 domain: match the exact host, never *.cloud.microsoft,
-                // which would also cover Teams, OneDrive, Word and the rest.
-                hostname === 'outlook.cloud.microsoft' ||
-                (hostname.endsWith('mcas.ms') && hostname.includes('outlook'))
-            );
+            isOutlookUrl = isOutlookCalendarHost(new URL(tab.url).hostname);
         } catch (err) {
             isOutlookUrl = false;
         }
