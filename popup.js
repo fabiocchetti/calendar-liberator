@@ -1,40 +1,51 @@
 // Calendar Liberator — Popup Script
 // Handles the two popup states (ready / empty) and the communication
-// with the content script.
+// with the content script. Publishing is a destination, not a separate
+// action: one button runs the export, the choice above it says where it goes.
 
 class CalendarLiberatorPopup {
     constructor() {
         this.readyState = document.getElementById('readyState');
         this.emptyState = document.getElementById('emptyState');
-        this.exportButton = document.getElementById('exportButton');
+        this.runButton = document.getElementById('runButton');
         this.calendarNameInput = document.getElementById('calendarName');
         this.timezoneSelect = document.getElementById('timezone');
         this.includeDeclinedCheckbox = document.getElementById('includeDeclined');
         this.includeOOOCheckbox = document.getElementById('includeOOO');
         this.errorText = document.getElementById('errorText');
-        this.publishButton = document.getElementById('publishButton');
-        this.publishDetails = document.getElementById('publishDetails');
+        this.statusText = document.getElementById('statusText');
+        this.progressTrack = document.getElementById('progressTrack');
+        this.progressFill = document.getElementById('progressFill');
+        this.publishConfig = document.getElementById('publishConfig');
+        this.publishSummary = document.getElementById('publishSummary');
         this.publishUrlInput = document.getElementById('publishUrl');
         this.publishHeaderInput = document.getElementById('publishHeader');
-        this.statusText = document.getElementById('statusText');
+        this.destinationRadios = document.querySelectorAll('input[name="destination"]');
 
         this.init();
     }
 
     init() {
-        this.exportButton.addEventListener('click', () => this.startExport('download'));
-        this.publishButton.addEventListener('click', () => this.startExport('publish'));
+        this.runButton.addEventListener('click', () => this.startExport());
+
+        for (const radio of this.destinationRadios) {
+            radio.addEventListener('change', () => {
+                this.clearResult();
+                this.syncDestinationUI();
+            });
+        }
 
         // Any change to the options clears the result of the previous run
-        const clear = () => { this.hideStatus(); this.hideError(); };
+        const clear = () => this.clearResult();
         this.calendarNameInput.addEventListener('input', clear);
         this.timezoneSelect.addEventListener('change', clear);
         this.includeDeclinedCheckbox.addEventListener('change', clear);
         this.includeOOOCheckbox.addEventListener('change', clear);
 
         const onTargetEdited = () => {
-            clear();
+            this.clearResult();
             this.savePublishTarget();
+            this.syncDestinationUI();
         };
         this.publishUrlInput.addEventListener('input', onTargetEdited);
         this.publishHeaderInput.addEventListener('input', onTargetEdited);
@@ -42,7 +53,7 @@ class CalendarLiberatorPopup {
         // Progress updates from the content script (registered once)
         chrome.runtime.onMessage.addListener((message) => {
             if (message.action === 'exportProgress') {
-                this.showStatus(`Exporting… ${message.progress}%`);
+                this.showProgress(message.status, message.progress);
             }
         });
 
@@ -50,6 +61,175 @@ class CalendarLiberatorPopup {
         this.initTimezoneLabels();
         this.detectUserTimezone();
         this.checkOutlookPage();
+        this.syncDestinationUI();
+    }
+
+    get destination() {
+        const chosen = document.querySelector('input[name="destination"]:checked');
+        return chosen ? chosen.value : 'download';
+    }
+
+    // The button label is fixed; only the destination fields come and go.
+    syncDestinationUI() {
+        this.publishConfig.hidden = this.destination !== 'publish';
+    }
+
+    destinationHost() {
+        try {
+            return new URL(this.publishUrlInput.value.trim()).host;
+        } catch (error) {
+            return null;
+        }
+    }
+
+    // storage.local, never storage.sync: sync would ship the user's endpoint
+    // credentials to Google.
+    async loadPublishTarget() {
+        try {
+            const stored = await chrome.storage.local.get(['publishTarget', 'lastPublishResult']);
+            const target = stored.publishTarget;
+
+            if (target && target.url) {
+                this.publishUrlInput.value = target.url;
+                this.publishHeaderInput.value = target.header || '';
+            }
+
+            this.describeDestination(stored.lastPublishResult);
+            this.syncDestinationUI();
+        } catch (error) {
+            // Fail silently: publishing simply stays unconfigured
+        }
+    }
+
+    describeDestination(lastResult) {
+        const host = this.destinationHost();
+
+        if (!host) {
+            this.publishSummary.textContent = 'No destination set yet';
+            return;
+        }
+
+        if (lastResult && lastResult.success && lastResult.at) {
+            this.publishSummary.textContent = `${host} · last published ${this.relativeTime(lastResult.at)}`;
+        } else {
+            this.publishSummary.textContent = host;
+        }
+    }
+
+    relativeTime(timestamp) {
+        const minutes = Math.round((Date.now() - timestamp) / 60000);
+        if (minutes < 1) return 'just now';
+        if (minutes < 60) return `${minutes} min ago`;
+        const hours = Math.round(minutes / 60);
+        if (hours < 24) return hours === 1 ? '1 hour ago' : `${hours} hours ago`;
+        const days = Math.round(hours / 24);
+        return days === 1 ? 'yesterday' : `${days} days ago`;
+    }
+
+    savePublishTarget() {
+        const target = {
+            url: this.publishUrlInput.value.trim(),
+            header: this.publishHeaderInput.value.trim()
+        };
+        chrome.storage.local.set({ publishTarget: target }).catch(() => {});
+    }
+
+    // Must be the first await in the click handler: permissions.request() needs
+    // a live user gesture, and any await before it — a permissions.contains()
+    // pre-check included — spends it and makes the call throw. Requesting an
+    // already-granted origin resolves true without prompting.
+    async ensureDestinationPermission(rawUrl) {
+        let origin;
+        try {
+            origin = new URL(rawUrl).origin + '/*';
+        } catch (error) {
+            throw new Error('That destination URL is not valid.');
+        }
+
+        let granted;
+        try {
+            granted = await chrome.permissions.request({ origins: [origin] });
+        } catch (error) {
+            throw new Error(`Could not request access to that host: ${error.message}`);
+        }
+
+        if (!granted) {
+            throw new Error('Access to that destination was denied.');
+        }
+    }
+
+    async startExport() {
+        const destination = this.destination;
+        const selectedTimezone = this.timezoneSelect.value;
+        const calendarName = this.calendarNameInput.value.trim();
+        const includeDeclined = this.includeDeclinedCheckbox.checked;
+        const includeOOO = this.includeOOOCheckbox.checked;
+
+        try {
+            this.clearResult();
+
+            if (destination === 'publish') {
+                const url = this.publishUrlInput.value.trim();
+                if (!url) {
+                    this.showError('Add a destination URL first.');
+                    this.publishUrlInput.focus();
+                    return;
+                }
+                // Granting can close the popup; the next click finds it granted
+                await this.ensureDestinationPermission(url);
+            }
+
+            this.runButton.disabled = true;
+            this.showProgress('Starting…', 0);
+
+            const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+
+            chrome.tabs.sendMessage(tab.id, {
+                action: 'exportCalendar',
+                destination: destination,
+                timezone: selectedTimezone,
+                calendarName: calendarName || null,
+                includeDeclined: includeDeclined,
+                includeOOO: includeOOO
+            }, (response) => {
+                this.runButton.disabled = false;
+                this.hideProgress();
+
+                if (chrome.runtime.lastError) {
+                    this.showError('Failed to communicate with the page. Please refresh and try again.');
+                    return;
+                }
+
+                if (response && response.success) {
+                    this.reportDelivery(response);
+                } else {
+                    this.showError(response?.error || 'Export failed.');
+                }
+            });
+
+        } catch (error) {
+            this.runButton.disabled = false;
+            this.hideProgress();
+            this.showError(error.message);
+        }
+    }
+
+    reportDelivery(response) {
+        const count = response.eventCount;
+        const label = count === 1 ? '1 event' : `${count} events`;
+
+        if (response.delivery === 'published') {
+            const host = this.destinationHost();
+            this.showStatus(`Published ${label}${host ? ` to ${host}` : ''}.`);
+            this.describeDestination({ success: true, at: Date.now() });
+            return;
+        }
+
+        this.showStatus(`Downloaded ${label}.`);
+
+        if (response.publishError) {
+            this.showError(`Publish failed — ${response.publishError}`);
+        }
     }
 
     // Append the current UTC offset to each option label, e.g.
@@ -144,132 +324,15 @@ class CalendarLiberatorPopup {
         this.emptyState.hidden = false;
     }
 
-    // The destination is remembered so it survives the popup closing, which it
-    // does every time the user clicks away. Kept in storage.local, never
-    // storage.sync: sync would ship the user's endpoint credentials to Google.
-    async loadPublishTarget() {
-        try {
-            const stored = await chrome.storage.local.get('publishTarget');
-            const target = stored.publishTarget;
-            if (!target || !target.url) return;
-
-            this.publishUrlInput.value = target.url;
-            this.publishHeaderInput.value = target.header || '';
-            this.publishDetails.open = true;
-        } catch (error) {
-            // Fail silently: publishing simply stays unconfigured
-        }
+    showProgress(status, percent) {
+        this.progressTrack.hidden = false;
+        this.progressFill.style.width = `${percent}%`;
+        this.showStatus(status);
     }
 
-    savePublishTarget() {
-        const target = {
-            url: this.publishUrlInput.value.trim(),
-            header: this.publishHeaderInput.value.trim()
-        };
-        chrome.storage.local.set({ publishTarget: target }).catch(() => {});
-    }
-
-    // Host access for an arbitrary endpoint is optional and requested only here,
-    // on the click itself: an install that never publishes never grants it.
-    //
-    // This must be the first await in the click handler. permissions.request()
-    // needs a live user gesture, and any await before it — including a
-    // permissions.contains() pre-check — spends the gesture and makes the call
-    // throw. Requesting an already-granted origin just resolves true without
-    // prompting, so the pre-check bought nothing anyway.
-    async ensureDestinationPermission(rawUrl) {
-        let origin;
-        try {
-            origin = new URL(rawUrl).origin + '/*';
-        } catch (error) {
-            throw new Error('That destination URL is not valid.');
-        }
-
-        let granted;
-        try {
-            granted = await chrome.permissions.request({ origins: [origin] });
-        } catch (error) {
-            throw new Error(`Could not request access to that host: ${error.message}`);
-        }
-
-        if (!granted) {
-            throw new Error('Access to that destination was denied.');
-        }
-    }
-
-    async startExport(destination = 'download') {
-        const selectedTimezone = this.timezoneSelect.value;
-        const calendarName = this.calendarNameInput.value.trim();
-        const includeDeclined = this.includeDeclinedCheckbox.checked;
-        const includeOOO = this.includeOOOCheckbox.checked;
-
-        try {
-            this.hideError();
-            this.hideStatus();
-
-            if (destination === 'publish') {
-                const url = this.publishUrlInput.value.trim();
-                if (!url) {
-                    this.publishDetails.open = true;
-                    this.showError('Add a destination URL first.');
-                    return;
-                }
-                // Granting can close the popup; the next click finds it granted
-                await this.ensureDestinationPermission(url);
-            }
-
-            this.setButtonDisabled(true);
-            this.showStatus('Exporting…');
-
-            const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-
-            chrome.tabs.sendMessage(tab.id, {
-                action: 'exportCalendar',
-                destination: destination,
-                timezone: selectedTimezone,
-                calendarName: calendarName || null,
-                includeDeclined: includeDeclined,
-                includeOOO: includeOOO
-            }, (response) => {
-                this.setButtonDisabled(false);
-
-                if (chrome.runtime.lastError) {
-                    this.hideStatus();
-                    this.showError('Failed to communicate with the page. Please refresh and try again.');
-                    return;
-                }
-
-                if (response && response.success) {
-                    const count = response.eventCount;
-                    const label = count === 1 ? '1 event' : `${count} events`;
-
-                    if (response.delivery === 'published') {
-                        this.showStatus(`Published ${label}.`);
-                    } else {
-                        this.showStatus(`Downloaded ${label}.`);
-                    }
-
-                    // The scrape succeeded but the upload did not: the file was
-                    // downloaded instead, so the run is not lost. Say both.
-                    if (response.publishError) {
-                        this.showError(`Publish failed — ${response.publishError}`);
-                    }
-                } else {
-                    this.hideStatus();
-                    this.showError(response?.error || 'Export failed.');
-                }
-            });
-
-        } catch (error) {
-            this.setButtonDisabled(false);
-            this.hideStatus();
-            this.showError(error.message);
-        }
-    }
-
-    setButtonDisabled(disabled) {
-        this.exportButton.disabled = disabled;
-        this.publishButton.disabled = disabled;
+    hideProgress() {
+        this.progressTrack.hidden = true;
+        this.progressFill.style.width = '0%';
     }
 
     showStatus(message) {
@@ -277,16 +340,13 @@ class CalendarLiberatorPopup {
         this.statusText.hidden = false;
     }
 
-    hideStatus() {
-        this.statusText.hidden = true;
-    }
-
     showError(message) {
         this.errorText.textContent = message;
         this.errorText.hidden = false;
     }
 
-    hideError() {
+    clearResult() {
+        this.statusText.hidden = true;
         this.errorText.hidden = true;
     }
 }

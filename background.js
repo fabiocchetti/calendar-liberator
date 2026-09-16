@@ -1,20 +1,31 @@
 // Calendar Liberator — Background Service Worker
 //
-// The only reason this file exists: since Chrome 85 a content script's fetch is
-// subject to the host page's CORS rules, so a PUT issued from the Outlook page
-// would die in preflight against most endpoints. From the service worker the
-// extension has real cross-origin access through its host permissions.
+// Exists because a content script's fetch follows the host page's CORS rules,
+// so a PUT issued from the Outlook page dies in preflight. From here the
+// extension has cross-origin access through its host permissions.
 
 const CONFIG_KEY = 'publishTarget';
+const RESULT_KEY = 'lastPublishResult';
 
-// Turns the single URL the user configured into a request. Credentials inlined
-// in the URL (https://user:pass@host/work.ics) are moved into a Basic header:
-// fetch() rejects URLs that carry them, but that spelling is how every WebDAV
-// server documents itself, so it is worth supporting with five lines.
+// The popup shares the message channel and closing it rejects an in-flight
+// sendMessage even on success, so the outcome is recorded where the content
+// script can read it back.
+async function recordOutcome(success, error) {
+    try {
+        await chrome.storage.local.set({
+            [RESULT_KEY]: { success, error: error || null, at: Date.now() }
+        });
+    } catch (storageError) {
+        // Nothing to do: the caller still gets the result over the channel
+    }
+}
+
 function buildRequest(target) {
     const url = new URL(target.url);
     const headers = { 'Content-Type': 'text/calendar; charset=utf-8' };
 
+    // fetch() rejects URLs carrying credentials, but that is how WebDAV
+    // documents itself, so move them into a Basic header instead.
     if (url.username) {
         const user = decodeURIComponent(url.username);
         const pass = decodeURIComponent(url.password);
@@ -23,7 +34,6 @@ function buildRequest(target) {
         url.password = '';
     }
 
-    // Optional free-form header, written by the user as "Name: value"
     if (target.header) {
         const separator = target.header.indexOf(':');
         if (separator > 0) {
@@ -50,7 +60,6 @@ async function publishICS(ics) {
     try {
         response = await fetch(url, { method: 'PUT', headers, body: ics });
     } catch (error) {
-        // Network-level failure: unreachable host, DNS, offline, TLS
         throw new Error(`could not reach the destination (${error.message})`);
     }
 
@@ -59,12 +68,21 @@ async function publishICS(ics) {
     }
 }
 
+async function runPublish(ics) {
+    try {
+        await publishICS(ics);
+        await recordOutcome(true, null);
+        return { success: true };
+    } catch (error) {
+        await recordOutcome(false, error.message);
+        return { success: false, error: error.message };
+    }
+}
+
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.action !== 'publishICS') return false;
 
-    publishICS(message.ics)
-        .then(() => sendResponse({ success: true }))
-        .catch(error => sendResponse({ success: false, error: error.message }));
+    runPublish(message.ics).then(sendResponse);
 
     // Keep the message port open for the async sendResponse above
     return true;

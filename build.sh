@@ -157,12 +157,8 @@ add_firefox_settings() {
                 id: 'calendar-liberator@fabiocchetti.dev',
                 // 128 is the first release with optional_host_permissions
                 strict_min_version: '128.0',
-                // AMO requires this declaration for new submissions.
-                // REVIEW BEFORE THE NEXT SUBMISSION: accurate only for the
-                // default flow. Once a publish destination is configured,
-                // calendar data is uploaded to a server the user chose —
-                // disclose that here, in PRIVACY.md and in the store listings
-                // before shipping publishing to users.
+                // REVIEW BEFORE THE NEXT SUBMISSION: true only for the default
+                // flow — a configured publish destination does upload data
                 data_collection_permissions: {
                     required: ['none']
                 }

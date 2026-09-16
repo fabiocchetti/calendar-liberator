@@ -7,6 +7,10 @@
     <link rel="stylesheet" href="popup.css">
 </head>
 <body>
+    <div class="progress" id="progressTrack" hidden>
+        <div class="progress-fill" id="progressFill"></div>
+    </div>
+
     <header class="header">
         <img src="icons/icon-48.png" alt="" width="36" height="36">
         <h1 class="wordmark">Calendar Liberator</h1>
@@ -15,10 +19,48 @@
     <!-- Ready state: on an Outlook page -->
     <main id="readyState" hidden>
         <div class="field">
+            <span class="field-label">Destination</span>
+
+            <label class="radio">
+                <input type="radio" name="destination" value="download" checked>
+                <span class="dot" aria-hidden="true"></span>
+                <span class="radio-text">
+                    <strong>Download a file</strong>
+                    <em>An .ics you import by hand. Does not update afterwards.</em>
+                </span>
+            </label>
+
+            <label class="radio">
+                <input type="radio" name="destination" value="publish">
+                <span class="dot" aria-hidden="true"></span>
+                <span class="radio-text">
+                    <strong>Publish to a URL</strong>
+                    <em id="publishSummary">No destination set yet</em>
+                </span>
+            </label>
+
+            <div id="publishConfig" hidden>
+                <div class="field">
+                    <div class="label-row">
+                        <label for="publishUrl">Destination URL</label>
+                        <a class="help" target="_blank" rel="noopener"
+                           href="https://github.com/fabiocchetti/calendar-liberator#publishing-to-a-url"
+                           title="How to set up a destination">Where do I get this?</a>
+                    </div>
+                    <input type="text" id="publishUrl" placeholder="https://example.com/work.ics" spellcheck="false">
+                </div>
+                <div class="field">
+                    <label for="publishHeader">Auth header (optional)</label>
+                    <input type="text" id="publishHeader" placeholder="Authorization: Bearer …" spellcheck="false">
+                </div>
+                <p class="hint">Your calendar app subscribes to this URL.</p>
+            </div>
+        </div>
+
+        <div class="field">
             <label for="calendarName">Calendar name</label>
             <input type="text" id="calendarName" placeholder="Auto-detected from Outlook" maxlength="100">
         </div>
-
         <div class="field">
             <label for="timezone">Timezone</label>
             <!-- Values are real IANA zones: a bare "UTC+1" is ambiguous with
@@ -66,24 +108,7 @@
             </label>
         </div>
 
-        <details class="advanced" id="publishDetails">
-            <summary>Publish to a URL</summary>
-            <div class="field">
-                <label for="publishUrl">Destination URL</label>
-                <input type="text" id="publishUrl" placeholder="https://example.com/work.ics" spellcheck="false">
-            </div>
-            <div class="field">
-                <label for="publishHeader">Auth header (optional)</label>
-                <input type="text" id="publishHeader" placeholder="Authorization: Bearer …" spellcheck="false">
-            </div>
-            <p class="hint">Your calendar app subscribes to this URL. For WebDAV you can
-            inline the credentials instead: <code>https://user:pass@host/work.ics</code></p>
-        </details>
-
-        <div class="actions">
-            <button id="exportButton" class="primary">Export .ics</button>
-            <button id="publishButton" class="secondary">Publish</button>
-        </div>
+        <button id="runButton" class="primary">Export calendar</button>
         <p id="statusText" class="status" hidden></p>
         <p id="errorText" class="error" hidden></p>
     </main>

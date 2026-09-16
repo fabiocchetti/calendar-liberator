@@ -141,8 +141,7 @@ class CalendarLiberator {
             this.sendProgress('Generating ICS file...', 85);
             const icsContent = this.generateICS();
             
-            const publishing = this.destination === 'publish';
-            this.sendProgress(publishing ? 'Publishing file...' : 'Downloading file...', 90);
+            this.sendProgress(this.destination === 'publish' ? 'Publishing file...' : 'Downloading file...', 90);
             const delivery = await this.deliverICS(icsContent);
             
             this.sendProgress('Restoring original view...', 95);
@@ -995,15 +994,15 @@ class CalendarLiberator {
         return null;
     }
 
-    // Hands the finished calendar to its destination. Publishing can fail for
-    // reasons that only surface after a multi-minute scrape (wrong URL, expired
-    // token, endpoint down), so a failure always falls back to the local
-    // download: the run is never thrown away, and the popup reports both.
+    // A failed upload falls back to the local download so a multi-minute
+    // scrape is never thrown away.
     async deliverICS(icsContent) {
         if (this.destination !== 'publish') {
             this.downloadICS(icsContent);
             return { delivery: 'downloaded' };
         }
+
+        const startedAt = Date.now();
 
         try {
             const response = await chrome.runtime.sendMessage({
@@ -1016,9 +1015,39 @@ class CalendarLiberator {
             }
             throw new Error(response?.error || 'upload failed');
         } catch (error) {
+            // A rejection here is not evidence of failure: the popup shares this
+            // channel and closing it rejects the promise even on success.
+            const outcome = await this.readPublishOutcome(startedAt);
+
+            if (outcome && outcome.success) {
+                return { delivery: 'published' };
+            }
+
             this.downloadICS(icsContent);
-            return { delivery: 'downloaded', publishError: error.message };
+            return {
+                delivery: 'downloaded',
+                publishError: (outcome && outcome.error) || error.message
+            };
         }
+    }
+
+    // Results stamped before this run belong to a previous one and are ignored,
+    // so a stale success cannot suppress a real failure.
+    async readPublishOutcome(startedAt, timeoutMs = 15000) {
+        const deadline = Date.now() + timeoutMs;
+
+        while (Date.now() < deadline) {
+            try {
+                const stored = await chrome.storage.local.get('lastPublishResult');
+                const result = stored.lastPublishResult;
+                if (result && result.at >= startedAt) return result;
+            } catch (error) {
+                return null;
+            }
+            await new Promise(resolve => setTimeout(resolve, 400));
+        }
+
+        return null;
     }
 
     downloadICS(icsContent) {
