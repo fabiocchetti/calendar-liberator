@@ -17,7 +17,6 @@ class CalendarLiberatorPopup {
         this.progressTrack = document.getElementById('progressTrack');
         this.progressFill = document.getElementById('progressFill');
         this.publishConfig = document.getElementById('publishConfig');
-        this.publishSummary = document.getElementById('publishSummary');
         this.publishUrlInput = document.getElementById('publishUrl');
         this.publishHeaderInput = document.getElementById('publishHeader');
         this.destinationRadios = document.querySelectorAll('input[name="destination"]');
@@ -86,7 +85,7 @@ class CalendarLiberatorPopup {
     // credentials to Google.
     async loadPublishTarget() {
         try {
-            const stored = await chrome.storage.local.get(['publishTarget', 'lastPublishResult']);
+            const stored = await chrome.storage.local.get('publishTarget');
             const target = stored.publishTarget;
 
             if (target && target.url) {
@@ -99,36 +98,10 @@ class CalendarLiberatorPopup {
                 if (publishRadio) publishRadio.checked = true;
             }
 
-            this.describeDestination(stored.lastPublishResult);
             this.syncDestinationUI();
         } catch (error) {
             // Fail silently: publishing simply stays unconfigured
         }
-    }
-
-    describeDestination(lastResult) {
-        const host = this.destinationHost();
-
-        if (!host) {
-            this.publishSummary.textContent = 'No destination set yet';
-            return;
-        }
-
-        if (lastResult && lastResult.success && lastResult.at) {
-            this.publishSummary.textContent = `${host} · last published ${this.relativeTime(lastResult.at)}`;
-        } else {
-            this.publishSummary.textContent = host;
-        }
-    }
-
-    relativeTime(timestamp) {
-        const minutes = Math.round((Date.now() - timestamp) / 60000);
-        if (minutes < 1) return 'just now';
-        if (minutes < 60) return `${minutes} min ago`;
-        const hours = Math.round(minutes / 60);
-        if (hours < 24) return hours === 1 ? '1 hour ago' : `${hours} hours ago`;
-        const days = Math.round(hours / 24);
-        return days === 1 ? 'yesterday' : `${days} days ago`;
     }
 
     savePublishTarget() {
@@ -226,7 +199,6 @@ class CalendarLiberatorPopup {
         if (response.delivery === 'published') {
             const host = this.destinationHost();
             this.showStatus(`Published ${label}${host ? ` to ${host}` : ''}.`);
-            this.describeDestination({ success: true, at: Date.now() });
             return;
         }
 
