@@ -16,6 +16,8 @@ A browser extension that liberates your work calendar by scraping visible events
 </p>
 <!-- PACKAGE_BADGES_END -->
 
+📖 **Guide:** [Sync your Outlook work calendar on iPhone and Google Calendar](https://visiomultimedia.com/en/blog/sync-outlook-work-calendar-on-iphone-google-calendar/)
+
 ---
 
 ## DISCLAIMER
@@ -269,6 +271,9 @@ click in the popup updates every device — no import, no file handling.
 
 This is optional and off by default. If you never set a destination, the
 extension makes no network requests at all.
+
+The steps below are complete on their own. For the same setup with screenshots,
+see [Sync your Outlook work calendar on iPhone and Google Calendar](https://visiomultimedia.com/en/blog/sync-outlook-work-calendar-on-iphone-google-calendar/).
 
 ### What you actually need
 
