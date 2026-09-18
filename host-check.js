@@ -18,6 +18,25 @@ function isOutlookCalendarHost(hostname) {
     );
 }
 
+function isTeamsHost(hostname) {
+    return (
+        hostname === 'teams.microsoft.com' ||
+        hostname === 'teams.live.com' ||
+        hostname === 'teams.cloud.microsoft' ||
+        (hostname.endsWith('mcas.ms') && hostname.includes('teams'))
+    );
+}
+
+function outlookCalendarUrlForTeamsHost(hostname) {
+    const outlookHost = hostname.replace(/^teams\./, 'outlook.');
+
+    if (outlookHost === hostname || !isOutlookCalendarHost(outlookHost)) return null;
+
+    return `https://${outlookHost}/calendar/`;
+}
+
 if (typeof window !== 'undefined') {
     window.isOutlookCalendarHost = isOutlookCalendarHost;
+    window.isTeamsHost = isTeamsHost;
+    window.outlookCalendarUrlForTeamsHost = outlookCalendarUrlForTeamsHost;
 }

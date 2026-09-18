@@ -7,6 +7,8 @@ class CalendarLiberatorPopup {
     constructor() {
         this.readyState = document.getElementById('readyState');
         this.emptyState = document.getElementById('emptyState');
+        this.teamsState = document.getElementById('teamsState');
+        this.outlookCalendarLink = document.getElementById('outlookCalendarLink');
         this.runButton = document.getElementById('runButton');
         this.calendarNameInput = document.getElementById('calendarName');
         this.timezoneSelect = document.getElementById('timezone');
@@ -26,6 +28,12 @@ class CalendarLiberatorPopup {
 
     init() {
         this.runButton.addEventListener('click', () => this.startExport());
+
+        this.outlookCalendarLink.addEventListener('click', (event) => {
+            event.preventDefault();
+            chrome.tabs.create({ url: this.outlookCalendarLink.href });
+            window.close();
+        });
 
         for (const radio of this.destinationRadios) {
             radio.addEventListener('change', () => {
@@ -260,15 +268,19 @@ class CalendarLiberatorPopup {
             return;
         }
 
-        let isOutlookUrl = false;
+        let hostname = '';
         try {
-            isOutlookUrl = isOutlookCalendarHost(new URL(tab.url).hostname);
+            hostname = new URL(tab.url).hostname;
         } catch (err) {
-            isOutlookUrl = false;
+            hostname = '';
         }
 
-        if (!isOutlookUrl) {
-            this.showEmptyState();
+        if (!isOutlookCalendarHost(hostname)) {
+            if (isTeamsHost(hostname)) {
+                this.showTeamsState(outlookCalendarUrlForTeamsHost(hostname));
+            } else {
+                this.showEmptyState();
+            }
             return;
         }
 
@@ -284,12 +296,25 @@ class CalendarLiberatorPopup {
 
     showReadyState() {
         this.emptyState.hidden = true;
+        this.teamsState.hidden = true;
         this.readyState.hidden = false;
     }
 
     showEmptyState() {
         this.readyState.hidden = true;
+        this.teamsState.hidden = true;
         this.emptyState.hidden = false;
+    }
+
+    showTeamsState(outlookUrl) {
+        if (outlookUrl) {
+            this.outlookCalendarLink.href = outlookUrl;
+            this.outlookCalendarLink.hidden = false;
+        }
+
+        this.readyState.hidden = true;
+        this.emptyState.hidden = true;
+        this.teamsState.hidden = false;
     }
 
     showProgress(status, percent) {
@@ -305,6 +330,7 @@ class CalendarLiberatorPopup {
 
     showStatus(message) {
         this.statusText.textContent = message;
+        this.statusText.title = message;
         this.statusText.hidden = false;
     }
 

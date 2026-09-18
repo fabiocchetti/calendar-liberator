@@ -7,10 +7,6 @@
     <link rel="stylesheet" href="popup.css">
 </head>
 <body>
-    <div class="progress" id="progressTrack" hidden>
-        <div class="progress-fill" id="progressFill"></div>
-    </div>
-
     <header class="header">
         <img src="icons/icon-48.png" alt="" width="36" height="36">
         <h1 class="wordmark">Calendar Liberator</h1>
@@ -18,6 +14,7 @@
 
     <!-- Ready state: on an Outlook page -->
     <main id="readyState" hidden>
+      <div class="form-scroll">
         <div class="field">
             <span class="field-label">Destination</span>
 
@@ -108,16 +105,31 @@
             </label>
         </div>
 
-        <button id="runButton" class="primary">Export calendar</button>
-        <p id="statusText" class="status" hidden></p>
-        <p id="errorText" class="error" hidden></p>
+      </div>
+
+      <div class="action-bar">
+          <div class="progress" id="progressTrack" hidden>
+              <div class="progress-fill" id="progressFill"></div>
+          </div>
+          <p id="statusText" class="status" hidden></p>
+          <p id="errorText" class="error" hidden></p>
+          <button id="runButton" class="primary">Export calendar</button>
+      </div>
     </main>
 
     <!-- Empty state: outside Outlook -->
     <main id="emptyState" class="empty" hidden>
         <img src="icons/icon-128.png" alt="" width="64" height="64">
         <h2>Nothing to export here</h2>
-        <p>Calendar Liberator reads the events shown by Outlook on the web. Open your calendar there, then click the extension icon again.</p>
+        <p>There is no calendar on this page. Calendar Liberator works only on Outlook on the web. Please open your calendar there, then click the extension icon again.</p>
+    </main>
+
+    <!-- Empty state: on Teams -->
+    <main id="teamsState" class="empty" hidden>
+        <img src="icons/icon-128.png" alt="" width="64" height="64">
+        <h2>Open this calendar in Outlook</h2>
+        <p>Looks like this is Microsoft Teams. The calendar looks the same, but Calendar Liberator can read it only on Outlook on the web.</p>
+        <a id="outlookCalendarLink" class="link-button" href="#" hidden>Open Outlook calendar</a>
     </main>
 
     <script src="host-check.js"></script>
