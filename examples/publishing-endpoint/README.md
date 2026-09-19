@@ -6,9 +6,9 @@ serves it to your calendar app, storing it in an R2 bucket you own.
 This is an example you deploy to your own Cloudflare account. It is not part of
 the extension and is not included in any published package.
 
-**The setup guide lives in the main README, under
-[Publishing to a URL](../../README.md#publishing-to-a-url).** This directory only
-holds the code:
+**The setup guide is
+[Sync your Outlook work calendar on iPhone and Google Calendar](https://visiomultimedia.com/en/blog/sync-outlook-work-calendar-on-iphone-google-calendar/).**
+This directory only holds the code:
 
 - `worker.js` — the endpoint. `PUT /calendar.ics` with a bearer token writes;
   `GET /<READ_PATH>` serves the file with the right content type.
