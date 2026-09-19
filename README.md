@@ -16,9 +16,6 @@ A browser extension that liberates your work calendar by reading the events show
 </p>
 <!-- PACKAGE_BADGES_END -->
 
-> [!IMPORTANT]
-> Calendar Liberator reads Outlook's web interface instead of using official APIs, and it is strictly one-way: nothing is ever written back to Outlook. Always verify exported calendars before relying on them for important meetings. See [Requirements & Limitations](#requirements--limitations).
-
 ---
 
 ## Features
@@ -31,6 +28,9 @@ A browser extension that liberates your work calendar by reading the events show
 - **Interaction Lock** — A semi-transparent overlay blocks accidental clicks on the page while the export runs (auto-removed on completion, failure, or after 60 seconds)
 - **Optional Publishing** — Upload the export to a URL you own so calendar apps subscribe and refresh themselves, instead of importing by hand — see [Publishing to a URL](#publishing-to-a-url)
 - **Privacy-First** — All processing happens locally in your browser; with the default Download destination, no data is transmitted
+
+> [!IMPORTANT]
+> Calendar Liberator reads Outlook's web interface instead of using official APIs, and it is strictly one-way: nothing is ever written back to Outlook. Always verify exported calendars before relying on them for important meetings. See [Requirements & Limitations](#requirements--limitations).
 
 ---
 
@@ -253,7 +253,6 @@ See [BUILD.md](BUILD.md) for the full build guide.
 - One-click Cloudflare deploy template for the publishing endpoint
 - Support for other calendar web apps
 - Support for non-English Outlook
-- Tell unanswered invitations apart from tentative ones
 
 ---
 
