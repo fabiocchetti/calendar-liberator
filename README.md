@@ -204,6 +204,9 @@ The reference endpoint it uses is in [`examples/publishing-endpoint/`](examples/
 
 ## Development
 
+The sources are plain JavaScript with no build step: what is in the repository is
+what runs in the browser.
+
 ### File Structure
 ```
 calendar-liberator/
@@ -222,28 +225,56 @@ calendar-liberator/
 ├── examples/              # Reference publishing endpoint (Cloudflare Worker + R2)
 ├── LICENSE                # MIT License
 ├── PRIVACY.md             # Privacy policy
-├── BUILD.md               # Build guide
 ├── STORE.md               # Store listing texts
 ├── CHANGELOG.md           # Release history
 └── README.md              # This file
 ```
 
+The icons are final assets: do not edit them. Their SVG sources are in `assets/`
+(`Calendar-Liberator_Icon.svg` for 48px and up, `Calendar-Liberator_Icon-Small.svg`
+for the simplified 16 and 32px versions), in case a new size is ever needed.
+
 ### Build & Package
 
-To create browser-specific packages for store submission:
+To create the three store packages:
 
 ```bash
 ./build.sh
 ```
 
-This generates three packages in `dist/`:
+This reads the version from `manifest.json` and writes to `dist/`:
 - `calendar-liberator-firefox-[version].zip` - Firefox Add-ons
 - `calendar-liberator-chrome-[version].zip` - Chrome Web Store
 - `calendar-liberator-edge-[version].zip` - Microsoft Edge Add-ons
 
-Each package includes a browser-specific README. The build script generates it from this file, swapping the blocks marked by `<!-- PACKAGE_* -->` HTML comments for the installation instructions of the store being built.
+Each package carries a README generated from this file, with the blocks marked by
+`<!-- PACKAGE_* -->` comments swapped for the installation instructions of the
+store being built: the store link comes from the `*_URL` variables in `build.sh`,
+the steps from the `*_INSTALL` ones. A missing marker fails the build instead of
+shipping a half-substituted README. The Firefox package also gets the 96px icon
+and the `browser_specific_settings.gecko` block, which Firefox requires; Chrome
+and Edge ship the manifest as it is.
 
-See [BUILD.md](BUILD.md) for the full build guide.
+To check what a package contains:
+
+```bash
+unzip -p dist/calendar-liberator-chrome-*.zip README.md | less
+unzip -p dist/calendar-liberator-firefox-*.zip manifest.json
+```
+
+Before submitting, load the folder from source in each browser (see
+[Installation](#installation)) and run a full export on a real Outlook calendar.
+
+### Test
+
+To run the test suite:
+
+```bash
+node test/ics-generator.test.js
+```
+
+Plain assertions against the ICS generator, so the repository stays free of
+dependencies.
 
 ---
 
