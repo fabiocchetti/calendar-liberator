@@ -1,7 +1,11 @@
 # Changelog
 
+**1.3.1**
+- Minor UI adjustments to the popup form.
+- Update labels and copy.
+
 **1.3.0**
-- Added optional publishing: the export can be uploaded to a URL you own, so calendar apps subscribe and refresh themselves instead of importing by hand ([setup guide](https://visiomultimedia.com/en/blog/sync-outlook-work-calendar-on-iphone-google-calendar/)).
+- Added support for publishing: the export can be uploaded to a URL you own, so calendar apps subscribe and refresh themselves instead of importing by hand ([setup guide](https://visiomultimedia.com/en/blog/sync-outlook-work-calendar-on-iphone-google-calendar/)).
 - Added a reference endpoint for Cloudflare Workers + R2 in `examples/publishing-endpoint/`.
 - Added support for consumer Outlook at `outlook.live.com`, which the manifest claimed but neither host check accepted.
 - Popup reorganized around the destination: one button, with download or publish chosen above it. Progress now has a bar and a status line, and button labels no longer change while running.

@@ -43,7 +43,7 @@ Your privacy:
 Everything happens in your browser. There are no accounts, no analytics and no servers of ours, and by default the extension makes no network requests at all. If you choose to publish, the file goes only to the address you set. Access is limited to Outlook and Office 365 pages.
 
 Good to know:
-• Works on outlook.cloud.microsoft, outlook.office.com, outlook.office365.com, outlook.com, office.com and corporate MCAS proxy domains.
+• Works with Outlook on the web for work, school and personal Microsoft accounts, including company setups that route Outlook through a security proxy.
 • The Outlook interface must be set to English.
 • It is one-way and read-only: nothing is ever changed in Outlook, where you still accept invitations and move meetings.
 • A downloaded file is a snapshot: export again to refresh it, or publish it instead.
