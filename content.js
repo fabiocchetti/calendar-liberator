@@ -686,9 +686,14 @@ class CalendarLiberator {
         // This method focuses on parsing the structure of the aria-label
         
         const parts = ariaLabel.split(', ');
+        while (parts.length > 3 && /\sicon$/i.test(parts[0].trim()) && !/^\d{1,2}:\d{2}/.test(parts[1].trim())) {
+            parts.shift();
+        }
         if (parts.length < 3) return null;
-        
-        let title = parts[0].trim();
+
+        const boundaryPattern = /^(?:\d{1,2}:\d{2}|all day|(?:Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)$)/i;
+        const boundaryIndex = parts.findIndex((part, i) => i > 0 && boundaryPattern.test(part.trim()));
+        let title = (boundaryIndex > 0 ? parts.slice(0, boundaryIndex).join(', ') : parts[0]).trim();
         
         const eventData = {
             title: title,
