@@ -1,5 +1,9 @@
 # Changelog
 
+**1.3.2**
+- Fixed event titles being exported as "Meeting icon" when Outlook adds the event-type icon to the label.
+- Fixed event titles that contain commas being cut off at the first comma.
+
 **1.3.1**
 - Minor UI adjustments to the popup form.
 - Update labels and copy.
