@@ -34,11 +34,15 @@ class ICSGenerator {
 
         // Never emit invalid VEVENT records without a valid DTSTART/DTEND.
         // Incomplete source events remain visible in the console for diagnosis.
+        this.lastSkippedCount = 0;
+        this.lastExportedCount = 0;
         for (const event of events) {
             const eventLines = this.generateEventLines(event);
             if (eventLines) {
                 lines.push(...eventLines);
+                this.lastExportedCount++;
             } else {
+                this.lastSkippedCount++;
                 console.warn('[CalendarBridge] Skipped undated or invalid event:', event.title || '(untitled)');
             }
         }
