@@ -171,4 +171,36 @@ const baseEvent = {
     console.log('✓ ambiguous equal start/end rejected');
 }
 
+// --- Explicit dates preserve exactly 24-hour call --------------------------
+{
+    const call = {
+        ...baseEvent,
+        date: 'November 21, 2026',
+        endDate: 'November 22, 2026',
+        startTime: '6:00 AM',
+        endTime: '6:00 AM',
+        title: 'Administrative call'
+    };
+    const ics = new ICSGenerator('America/New_York').generate([call]);
+    assert.ok(ics.includes('DTSTART:20261121T110000Z'), '24-hour start wrong');
+    assert.ok(ics.includes('DTEND:20261122T110000Z'), '24-hour end wrong');
+    console.log('✓ explicit end date preserves 24-hour call');
+}
+
+// --- Explicit end date preserves Friday evening shift ending Saturday ------
+{
+    const shift = {
+        ...baseEvent,
+        date: 'December 11, 2026',
+        endDate: 'December 12, 2026',
+        startTime: '4:00 PM',
+        endTime: '12:00 AM',
+        title: 'Evening shift'
+    };
+    const ics = new ICSGenerator('America/New_York').generate([shift]);
+    assert.ok(ics.includes('DTSTART:20261211T210000Z'), 'shift start wrong');
+    assert.ok(ics.includes('DTEND:20261212T050000Z'), 'shift end wrong');
+    console.log('✓ explicit end date preserves evening shift');
+}
+
 console.log('\nAll tests passed.');
