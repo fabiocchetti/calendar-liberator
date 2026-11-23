@@ -126,4 +126,46 @@ const baseEvent = {
     console.log('✓ status and transparency');
 }
 
+
+
+// --- Missing date/time must not create malformed calendar events ------------
+{
+    const incomplete = { ...baseEvent, date: null, startTime: null, endTime: null, title: 'Shift missing timestamps' };
+    const good = { ...baseEvent, title: 'Valid meeting' };
+    const ics = new ICSGenerator('America/New_York').generate([incomplete, good]);
+    assert.strictEqual((ics.match(/BEGIN:VEVENT/g) || []).length, 1, 'incomplete event must be omitted');
+    assert.ok(!ics.includes('Shift missing timestamps'), 'incomplete event should not appear');
+    assert.ok(ics.includes('SUMMARY:Valid meeting'), 'valid events must remain');
+    assert.strictEqual(new ICSGenerator('America/New_York').generate([incomplete]).includes('BEGIN:VEVENT'), false);
+    console.log('✓ missing timestamps not exported as broken VEVENT');
+}
+
+// --- Overnight clinical shift ends on the next calendar day ----------------
+{
+    const overnight = { ...baseEvent, date: 'November 21, 2026', startTime: '4:00 PM', endTime: '12:00 AM', title: 'Evening shift' };
+    const ics = new ICSGenerator('America/New_York').generate([overnight]);
+    assert.ok(ics.includes('DTSTART:20261121T210000Z'), 'overnight start wrong');
+    assert.ok(ics.includes('DTEND:20261122T050000Z'), 'overnight end must be next day');
+    console.log('✓ overnight shift crosses midnight');
+}
+
+// --- Unambiguous same-day event must remain on same day ---------------------
+{
+    const ics = new ICSGenerator('America/New_York').generate([
+        { ...baseEvent, date: 'November 24, 2026', startTime: '6:00 AM', endTime: '2:00 PM' }
+    ]);
+    assert.ok(ics.includes('DTSTART:20261124T110000Z'));
+    assert.ok(ics.includes('DTEND:20261124T190000Z'));
+    console.log('✓ ordinary daytime shift unchanged');
+}
+
+// --- Equal start/end times are ambiguous: reject, don't invent 24 hours ----
+{
+    const ics = new ICSGenerator('America/New_York').generate([
+        { ...baseEvent, startTime: '6:00 AM', endTime: '6:00 AM' }
+    ]);
+    assert.ok(!ics.includes('BEGIN:VEVENT'));
+    console.log('✓ ambiguous equal start/end rejected');
+}
+
 console.log('\nAll tests passed.');
