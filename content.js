@@ -140,6 +140,11 @@ class CalendarLiberator {
             
             this.sendProgress('Generating ICS file...', 85);
             const icsContent = this.generateICS();
+            const exportedCount = this.lastExportCounts?.exported || 0;
+            const skippedCount = this.lastExportCounts?.skipped || 0;
+            if (exportedCount === 0) {
+                throw new Error('No valid events with dates and times were available to export.');
+            }
             
             this.sendProgress(this.destination === 'publish' ? 'Publishing file...' : 'Downloading file...', 90);
             const delivery = await this.deliverICS(icsContent);
@@ -157,8 +162,9 @@ class CalendarLiberator {
             
             return { 
                 success: true, 
-                eventCount: this.allEvents.length,
-                message: `Successfully exported ${this.allEvents.length} events!`,
+                eventCount: exportedCount,
+                skippedCount,
+                message: `Exported ${exportedCount} valid events; skipped ${skippedCount} incomplete events.`,
                 ...delivery
             };
             
@@ -802,7 +808,12 @@ class CalendarLiberator {
         // fall back to the display name ("John Doe - Outlook") if no email was found
         const accountIdentity = this.userEmail || this.userDisplayName || null;
         const icsGenerator = new ICSGenerator(this.timezone, accountIdentity, this.calendarName || null);
-        return icsGenerator.generate(this.allEvents);
+        const ics = icsGenerator.generate(this.allEvents);
+        this.lastExportCounts = {
+            exported: icsGenerator.lastExportedCount,
+            skipped: icsGenerator.lastSkippedCount
+        };
+        return ics;
     }
 
     async detectUserEmail() {
