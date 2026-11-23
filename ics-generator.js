@@ -91,14 +91,17 @@ class ICSGenerator {
             
             if (day && start && end) {
                 const startUTC = this.wallTimeToUTC(day, start.hours, start.minutes);
-                const endDay = new Date(day);
-                // A time earlier than the start belongs to the following day.
-                // Exactly equal times are ambiguous (zero-length vs 24 hours),
-                // so do not guess.
+                // Prefer Outlook's explicit end date for cross-midnight and
+                // 24-hour events. Only infer the next day for legacy labels
+                // that supply one date and a clock-time range.
+                const endDay = event.endDate ? this.parseDate(event.endDate) : new Date(day);
+                if (!endDay) return null;
                 const startMinutes = start.hours * 60 + start.minutes;
                 const endMinutes = end.hours * 60 + end.minutes;
-                if (endMinutes === startMinutes) return null;
-                if (endMinutes < startMinutes) endDay.setDate(endDay.getDate() + 1);
+                if (!event.endDate) {
+                    if (endMinutes === startMinutes) return null; // ambiguous
+                    if (endMinutes < startMinutes) endDay.setDate(endDay.getDate() + 1);
+                }
                 const endUTC = this.wallTimeToUTC(endDay, end.hours, end.minutes);
                 if (!Number.isFinite(startUTC.getTime()) || !Number.isFinite(endUTC.getTime()) || endUTC <= startUTC) return null;
                 lines.push(`DTSTART:${this.formatDateTimeUTC(startUTC)}`);
