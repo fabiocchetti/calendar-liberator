@@ -132,7 +132,10 @@ const baseEvent = {
 {
     const incomplete = { ...baseEvent, date: null, startTime: null, endTime: null, title: 'Shift missing timestamps' };
     const good = { ...baseEvent, title: 'Valid meeting' };
-    const ics = new ICSGenerator('America/New_York').generate([incomplete, good]);
+    const generator = new ICSGenerator('America/New_York');
+    const ics = generator.generate([incomplete, good]);
+    assert.strictEqual(generator.lastExportedCount, 1);
+    assert.strictEqual(generator.lastSkippedCount, 1);
     assert.strictEqual((ics.match(/BEGIN:VEVENT/g) || []).length, 1, 'incomplete event must be omitted');
     assert.ok(!ics.includes('Shift missing timestamps'), 'incomplete event should not appear');
     assert.ok(ics.includes('SUMMARY:Valid meeting'), 'valid events must remain');
