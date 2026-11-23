@@ -207,10 +207,16 @@ class CalendarLiberatorPopup {
         if (response.delivery === 'published') {
             const host = this.destinationHost();
             this.showStatus(`Published ${label}${host ? ` to ${host}` : ''}.`);
+            if (response.skippedCount > 0) {
+                this.showError(`Warning: ${response.skippedCount} appointment(s) with missing or invalid dates/times were omitted. This calendar is incomplete.`);
+            }
             return;
         }
 
         this.showStatus(`Downloaded ${label}.`);
+        if (response.skippedCount > 0) {
+            this.showError(`Warning: ${response.skippedCount} appointment(s) had missing or invalid dates/times and were NOT included. Do not treat this export as a complete calendar backup or sync.`);
+        }
 
         if (response.publishError) {
             this.showError(`Publish failed — ${response.publishError}`);
