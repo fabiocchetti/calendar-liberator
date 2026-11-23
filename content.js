@@ -76,6 +76,7 @@ class CalendarLiberator {
             await this.navigateToToday();
             
             this.allEvents = [];
+            this.incompleteDiagnostics = [];
             
             // Calculate exact date range: 7 days back from today + today + 21 days forward = 28 days total
             const today = new Date();
@@ -164,6 +165,7 @@ class CalendarLiberator {
                 success: true, 
                 eventCount: exportedCount,
                 skippedCount,
+                incompleteDiagnostics: this.incompleteDiagnostics || [],
                 message: `Exported ${exportedCount} valid events; skipped ${skippedCount} incomplete events.`,
                 ...delivery
             };
@@ -681,7 +683,29 @@ class CalendarLiberator {
         const calNode = eventElement.closest('[data-calitemid]') || eventElement;
         const calItemId = calNode?.getAttribute?.('data-calitemid') || calNode?.dataset?.calitemid;
         if (calItemId) eventData.calItemId = calItemId;
-        
+
+        // Diagnostic details are returned only to the local popup, without
+        // persistence or network transmission. The user chooses what to share.
+        if (!eventData.date || (!eventData.allDay && (!eventData.startTime || !eventData.endTime))) {
+            const diagnostic = {
+                eventTitle: eventData.title,
+                parsedDate: eventData.date,
+                parsedStart: eventData.startTime,
+                parsedEnd: eventData.endTime,
+                ariaLabel: ariaLabel,
+                ariaDescription: buttonElement.getAttribute('aria-description') || '',
+                titleAttribute: title,
+                visibleText: (buttonElement.innerText || buttonElement.textContent || '').trim().slice(0, 500),
+                elementAttributes: Array.from(eventElement.attributes || []).map(attribute => attribute.name),
+                buttonAttributes: Array.from(buttonElement.attributes || []).map(attribute => attribute.name)
+            };
+            const key = (calItemId || '') + '|' + diagnostic.eventTitle + '|' + diagnostic.ariaLabel;
+            if (!this.incompleteDiagnostics) this.incompleteDiagnostics = [];
+            if (!this.incompleteDiagnostics.some(item => item.key === key)) {
+                this.incompleteDiagnostics.push({ key, ...diagnostic });
+            }
+        }
+
         return eventData;
     }
 
