@@ -738,6 +738,19 @@ class CalendarLiberator {
             allDay: false
         };
         
+        // New Outlook accessible labels can include a weekday and full date
+        // for EACH boundary, e.g. "4:00 PM Friday, December 11, 2026 to
+        // 12:00 AM Saturday, December 12, 2026". The legacy regex below only
+        // understands adjacent times, so parse this explicit range first.
+        const dateTimeRangePattern = /(\d{1,2}:\d{2}\s*(?:AM|PM))\s+(?:Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday),?\s+([A-Za-z]+\s+\d{1,2},?\s+\d{4})\s+to\s+(\d{1,2}:\d{2}\s*(?:AM|PM))\s+(?:Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday),?\s+([A-Za-z]+\s+\d{1,2},?\s+\d{4})/i;
+        const explicitRange = ariaLabel.match(dateTimeRangePattern);
+        if (explicitRange) {
+            eventData.startTime = explicitRange[1].trim();
+            eventData.date = explicitRange[2].trim();
+            eventData.endTime = explicitRange[3].trim();
+            eventData.endDate = explicitRange[4].trim();
+        }
+
         // Parse time ranges. Support both 12-hour (AM/PM) and 24-hour formats
         const timePatterns = [
             /(\d{1,2}:\d{2}\s*(?:AM|PM))\s*to\s*(\d{1,2}:\d{2}\s*(?:AM|PM))/i,
@@ -755,7 +768,7 @@ class CalendarLiberator {
             }
         }
 
-        if (!matched) {
+        if (!matched && !explicitRange) {
             if (ariaLabel.toLowerCase().includes('all day')) {
                 eventData.allDay = true;
             }
@@ -764,7 +777,7 @@ class CalendarLiberator {
         // Parse date (e.g., "Monday, October 6, 2025" or date ranges)
         const datePattern = /(?:Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday),?\s*([A-Za-z]+\s+\d{1,2},?\s+\d{4})/i;
         const dateMatch = ariaLabel.match(datePattern);
-        if (dateMatch) {
+        if (dateMatch && !eventData.date) {
             eventData.date = dateMatch[1].trim();
         }
         
